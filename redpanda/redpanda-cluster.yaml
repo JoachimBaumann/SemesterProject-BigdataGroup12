@@ -1,0 +1,21 @@
+apiVersion: cluster.redpanda.com/v1alpha1
+kind: Redpanda
+metadata:
+  name: redpanda
+spec:
+  chartRef: {}
+  clusterSpec:
+    external:
+      enabled: true
+      type: NodePort
+      addresses:
+      - 10.123.252.225
+      - 10.123.252.205
+      - 10.123.252.236
+    tls:
+      enabled: false
+    statefulset:
+      replicas: 3
+      initContainers:
+        setDataDirOwnership:
+          enabled: true
