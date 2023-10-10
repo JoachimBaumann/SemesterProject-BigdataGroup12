@@ -6,16 +6,11 @@ spec:
   chartRef: {}
   clusterSpec:
     external:
-      enabled: true
-      type: NodePort
-      addresses:
-      - 10.123.252.225
-      - 10.123.252.205
-      - 10.123.252.236
-    tls:
-      enabled: false
+      domain: customredpandadomain.local
     statefulset:
       replicas: 3
       initContainers:
         setDataDirOwnership:
           enabled: true
+    tls:
+      enabled: false
