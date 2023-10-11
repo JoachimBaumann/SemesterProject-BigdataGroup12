@@ -6,15 +6,31 @@ import socket
 from dataclasses import asdict, dataclass
 from itertools import islice
 from dateutil.parser import parse as dateParse
-from typing import List, Generator, Optional
+from typing import Iterable, List, Generator, Optional, Tuple, TypeVar
+from itertools import islice
 import os
 import json
+from collections import deque
+from itertools import islice
+
+
 
 def datetime_serializer(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     raise TypeError(f"Type not serializable: {type(obj)}")
 
+
+T = TypeVar('T')
+
+def window(iterable: Iterable[T], size: int = 2) -> Generator[Tuple[T, ...], None, None]:
+    """Generates a sliding window over the iterable."""
+    it = iter(iterable)
+    win = deque(islice(it, size), maxlen=size)
+    yield tuple(win)
+    for item in it:
+        win.append(item)
+        yield tuple(win)
 
 @dataclass
 class BusData:
@@ -98,7 +114,7 @@ class BusDataLoader:
     BASE_PATH = "datasets/bus_dataset/"
     FILENAMES = ["mta_1706.csv", "mta_1708.csv", "mta_1710.csv", "mta_1712.csv"]
 
-    def __init__(self, file_index: int, start: int = 0, end: int = None, batch_size = 1):
+    def __init__(self, file_index: int, start: int = 0, end: int | None = None, batch_size = 1):
         self.file_index = file_index
         self.start = start
         self.end = end
@@ -142,28 +158,26 @@ class BusDataLoader:
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
         kafka_producer = KafkaProducerSingleton()
-        prev_time = None
 
         for batch in self._generate_batches():
             batch.sort(key=lambda x: x.RecordedAtTime)
 
-            for bus_entry in batch:
-                current_time = bus_entry.RecordedAtTime
+            for previous, current in window(batch):
+                duration = current.RecordedAtTime - previous.RecordedAtTime
+                sleep_duration = duration.total_seconds()
 
-                if prev_time:
-                    duration = current_time - prev_time
-                    sleep_duration = duration.total_seconds()
-                    if (sleep_duration < 0 or sleep_duration > 10.0): 
-                        continue
-                    print("Waiting", sleep_duration, "Seconds...")
-                    time.sleep(sleep_duration)
+                if (sleep_duration < 0 or sleep_duration > 60.0): 
+                    continue
 
-                kafka_producer.send("bus", bus_entry)
-                prev_time = current_time
+                if (sleep_duration > 5.0):
+                    print("sleeping for", sleep_duration, "seconds...")
+                time.sleep(sleep_duration)
+
+                kafka_producer.send("bus", current)
 
 
 def main():
-    bus_data_loader = BusDataLoader(file_index=0, start=1000, end=100000, batch_size=10000)
+    bus_data_loader = BusDataLoader(file_index=0, start=1000, end=3_000_000, batch_size=1000)
 
     print("Sending data to kafka")
     bus_data_loader.simulate_realtime_send()
