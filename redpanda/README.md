@@ -118,7 +118,14 @@ bds-g12-n1   redpanda-0
 
 Congratulations! You've successfully deployed Redpanda on Kubernetes using cert-manager and Helm.
 
-### **Port forward redpanda console**
+# Useful commands
+
+**Port forward redpanda console**
 ```bash
-kubectl --namespace redpanda port-forward svc/redpanda-console 8080:8080
+kubectl -n redpanda port-forward svc/redpanda-console 8080:8080
+```
+
+**Add new topic**
+``` bash
+kubectl -n redpanda apply -f redpanda/topics/bus.yaml
 ```

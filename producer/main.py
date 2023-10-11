@@ -6,13 +6,19 @@ import socket
 from dataclasses import asdict, dataclass
 from itertools import islice
 from dateutil.parser import parse as dateParse
-from typing import List, Tuple, Generator, Optional, Callable
+from typing import List, Generator, Optional
 import os
 import json
 
+def datetime_serializer(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type not serializable: {type(obj)}")
+
+
 @dataclass
 class BusData:
-    RecordedAtTime: str
+    RecordedAtTime: datetime.datetime
     DirectionRef: int
     PublishedLineName: str
     OriginName: str
@@ -34,7 +40,7 @@ class BusData:
     def from_row(cls, row: List[str]) -> Optional['BusData']:
         try:
             return cls(
-                RecordedAtTime=row[0],
+                RecordedAtTime=dateParse(row[0]),
                 DirectionRef=int(row[1]),
                 PublishedLineName=row[2],
                 OriginName=row[3],
@@ -54,6 +60,10 @@ class BusData:
             )
         except (ValueError, IndexError):
             return None
+    
+    def to_json(self):
+        return json.dumps(asdict(self), default=datetime_serializer)
+
       
 class KafkaProducerSingleton:
 
@@ -64,21 +74,22 @@ class KafkaProducerSingleton:
 
     _singleton_instance = None
     
-    # Ensure only one instance of the class can be created.
     def __new__(cls, *args, **kwargs):
         if not cls._singleton_instance:
             cls._singleton_instance = super(KafkaProducerSingleton, cls).__new__(cls, *args, **kwargs)
+            # Initializing the producer instance here to ensure it's done once.
+            cls._singleton_instance.producer_instance = Producer(cls.KAFKA_CONFIG)
         return cls._singleton_instance
 
-    # Initialize Kafka producer.
-    def __init__(self):
-        # Ensure producer is initialized once.
-        if not hasattr(self, 'producer_instance'):
-            self.producer_instance = Producer(self.KAFKA_CONFIG)
-
     # Send a message to Kafka.
-    def send(self, topic_name: str, key_value: str, message_value: str):
-        self.producer_instance.produce(topic_name, key=key_value, value=message_value)
+    def send(self, topic_name: str, data: BusData):
+        self.producer_instance.produce(topic_name, key=data.VehicleRef, value=data.to_json())
+        self.producer_instance.flush()
+
+    # Send a batch of messages to kafka
+    def send_batch(self, topic_name: str, batch: List[BusData]):
+        for data in batch:
+            self.producer_instance.produce(topic_name, key=data.VehicleRef, value=data.to_json())
         self.producer_instance.flush()
 
 
@@ -87,64 +98,72 @@ class BusDataLoader:
     BASE_PATH = "datasets/bus_dataset/"
     FILENAMES = ["mta_1706.csv", "mta_1708.csv", "mta_1710.csv", "mta_1712.csv"]
 
-    # Initialize loader and set up the CSV reader generator.
-    def __init__(self, file_index: int, start: int = 0, end: int = None):
-        self.loaded_data: List[BusData] = []
-        file_path = self._construct_filepath(file_index)
-        self.csv_row_generator = self._generate_csv_rows(file_path, start, end)
+    def __init__(self, file_index: int, start: int = 0, end: int = None, batch_size = 1):
+        self.file_index = file_index
+        self.start = start
+        self.end = end
+        self.batch_size = batch_size
 
-    # Return full path of the desired CSV file.
     def _construct_filepath(self, index: int) -> str:
         return os.path.join(self.BASE_PATH, self.FILENAMES[index])
 
-    # Yield rows from the specified CSV file.
-    def _generate_csv_rows(self, file_path: str, start_index: int, end_index: int) -> Generator[List[str], None, None]:
+    def _generate_batches(self) -> Generator[List[BusData], None, None]:
+        """ Used to not read the entire dataset at once, but in batches"""
+        batch: List[BusData] = []
+        file_path = self._construct_filepath(self.file_index)
+        start = self.start
+        end = self.end
+        batch_size = self.batch_size
+
         with open(file_path, "r") as csv_file:
             csv_reader = csv.reader(csv_file)
-            rows_to_yield = islice(csv_reader, start_index, end_index + 1 if end_index is not None else None)
+            rows_to_yield = islice(csv_reader, start, end + 1 if end is not None else None)
+            
             for row in rows_to_yield:
-                yield row
+                bus_entry = BusData.from_row(row)
+                if bus_entry:
+                    batch.append(bus_entry)
 
-    # Load data from the CSV into memory.
-    def load_from_csv(self):
-        for row in self.csv_row_generator:
-            bus_entry = BusData.from_row(row)
-            if bus_entry:
-                self.loaded_data.append(bus_entry)
+                if len(batch) == batch_size:
+                    yield batch
+                    batch = []
 
-    # Send data from the CSV to Kafka.
+        # Yield any remaining rows in the last batch
+        if batch:
+            yield batch
+
     def send_to_kafka(self):
+        """Send data from the CSV to Kafka."""  
         kafka_producer = KafkaProducerSingleton()
 
-        for row in self.csv_row_generator:
-            bus_entry = BusData.from_row(row)
-            if bus_entry:
-                json_string = json.dumps(asdict(bus_entry))
-                kafka_producer.send("bus", bus_entry.VehicleRef, json_string)
+        for batch in self._generate_batches():
+            kafka_producer.send_batch("bus", batch)
 
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
         kafka_producer = KafkaProducerSingleton()
-        
         prev_time = None
 
-        for row in self.csv_row_generator:
-            bus_entry = BusData.from_row(row)
-            if bus_entry:
+        for batch in self._generate_batches():
+            batch.sort(key=lambda x: x.RecordedAtTime)
 
-                current_time = dateParse(bus_entry.RecordedAtTime)
+            for bus_entry in batch:
+                current_time = bus_entry.RecordedAtTime
 
-            if prev_time:
-                sleep_duration = (current_time - prev_time).total_seconds()
-                time.sleep(sleep_duration)
+                if prev_time:
+                    duration = current_time - prev_time
+                    sleep_duration = duration.total_seconds()
+                    if (sleep_duration < 0 or sleep_duration > 10.0): 
+                        continue
+                    print("Waiting", sleep_duration, "Seconds...")
+                    time.sleep(sleep_duration)
 
-                json_string = json.dumps(asdict(bus_entry))
-                kafka_producer.send("bus", bus_entry.VehicleRef, json_string)
+                kafka_producer.send("bus", bus_entry)
                 prev_time = current_time
 
 
 def main():
-    bus_data_loader = BusDataLoader(file_index=0, start=1, end=10)
+    bus_data_loader = BusDataLoader(file_index=0, start=1000, end=100000, batch_size=10000)
 
     print("Sending data to kafka")
     bus_data_loader.simulate_realtime_send()

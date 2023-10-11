@@ -28,3 +28,10 @@ kubectl exec -it python -n python -- pip install -r /producer/requirements.txt
 kubectl exec -it python -n python -- python /producer/main.py
 ```
 
+
+## Run python 2.0
+```bash
+kubectl exec -n python python -- rm -rf /producer && \
+kubectl cp producer python:/ -n python && \
+kubectl exec -it python -n python -- python /producer/main.py
+```

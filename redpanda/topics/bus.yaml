@@ -3,7 +3,7 @@ kind: Topic
 metadata:
   name: bus
 spec:
-  partitions: 3
+  partitions: 5
   replicationFactor: 3
   kafkaApiSpec:
     brokers:
