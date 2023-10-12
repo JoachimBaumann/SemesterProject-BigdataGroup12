@@ -113,22 +113,14 @@ class BusDataLoader:
                 yield bus_data
 
     def get_busdata_batches(self) -> Iterator[List[BusData]]:
-        """Used to not read the entire dataset at once, but in batches"""
-        batch: List[BusData] = []
-        
-        for bus_entry in self.get_busdata_entries():
-            batch.append(bus_entry)
+        """ Divides the dataset into batches of of length `batch_size`. The last batch may be smaller if the total entries aren't a multiple of `batch_size`. """
+        iterable = iter(self.get_busdata_entries())
 
-            if len(batch) == self.batch_size:
-                yield batch
-                batch = []
-
-        # Yield any remaining rows in the last batch
-        if batch:
+        while batch := list(islice(iterable, self.batch_size)):
             yield batch
 
 
-    def get_busdata_sorted(self) -> Iterator[BusData]:
+    def get_busdata_entries_in_order(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
         priority_queue = PriorityQueue(self.batch_size)
         data_source = self.get_busdata_entries()
@@ -171,7 +163,7 @@ class BusDataSender:
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
 
-        for previous, current in sliding_window(self.loader.get_busdata_sorted()):
+        for previous, current in sliding_window(self.loader.get_busdata_entries_in_order()):
             duration = current.RecordedAtTime - previous.RecordedAtTime
             sleep_duration = duration.total_seconds()
 
@@ -191,7 +183,7 @@ def main():
         'client.id': socket.gethostname()
     }
     kafka_producer = Producer(KAFKA_CONFIG)
-    
+
     loader = BusDataLoader(file_index=0, start=1, end=1000, batch_size=10_000)
     sender = BusDataSender(loader=loader, producer=kafka_producer)
 
