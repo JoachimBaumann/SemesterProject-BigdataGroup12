@@ -2,63 +2,108 @@
 
 Follow this step-by-step guide to set up a Python environment in a Kubernetes container, upload the required data and code, install dependencies, and run Python scripts.
 
-## 1. Create an Interactive Python Container
 
-Set up a namespace named `python` and launch an interactive Python container within it:
+## Setup Kubernetes Container
 
-```bash
+### **Step 1**: Download Datasets
+
+Navigate to the Kaggle pages and download the following datasets within the `datasets` folder:
+
+- [**New York City Taxi Trips**](https://www.kaggle.com/datasets/dhruvildave/new-york-city-taxi-trips-2019)
+- [**New York City Bus Data**](https://www.kaggle.com/datasets/stoney71/new-york-city-transport-statistics)
+
+### **Step 2**: Rename Files
+
+After downloading, rename the datasets for consistency:
+
+- **Taxi Dataset**: `taxi_dataset.zip`
+- **Bus Dataset**: `bus_dataset.zip`
+
+### **Step 3**: Verify Folder Structure
+
+Ensure your `datasets` folder aligns with the structure below:
+
+```
+datasets
+├── bus_dataset.zip
+└── taxi_dataset.zip
+```
+
+### **Step 4**: Create an Interactive Python Container
+
+Initialize a namespace named `python` and launch an interactive Python container:
+
+```
 kubectl create namespace python
 kubectl run python  -n python -i --tty --image python:3.11 -- bash 
 ```
 
-## 2. Upload Code to the Container
+### **Step 5**: Transfer Datasets to the Container
 
-First, clean any existing `producer` folder, and then copy your local `producer` folder to the root of the container:
+1. Generate a `datasets` directory in the container:
 
-```bash
-kubectl exec -n python python -- rm -rf /producer
-kubectl cp producer python:/ -n python
+    ```
+    kubectl exec -n python python -- mkdir datasets
+    ```
+
+2. Transfer and decompress the datasets:
+
+    - **Bus Dataset**:
+
+        ```
+        kubectl cp datasets/bus_dataset.zip python:/datasets -n python
+        kubectl exec -n python python -- unzip /datasets/bus_dataset.zip -d /datasets/bus_dataset/
+        ```
+
+    - **Taxi Dataset**:
+
+        ```
+        kubectl cp datasets/taxi_dataset.zip python:/datasets -n python
+        kubectl exec -n python python -- unzip /datasets/taxi_dataset.zip -d /datasets/taxi_dataset/
+        ```
+
+_Note: Dataset transfer may take a while, so patience is key._
+
+---
+
+## Upload and Execute Python Code
+
+### **Step 1**: Transfer Code to the Container
+
+1. Eliminate any pre-existing `producer` folder.
+2. Copy your local `producer` folder to the container root:
+
+    ```
+    kubectl exec -n python python -- rm -rf /producer
+    kubectl cp producer python:/ -n python
+    ```
+
+### **Step 2**: Install Python Dependencies
+
+Ensure a `requirements.txt` file is present in your `producer` folder and then install the dependencies:
+
 ```
-
-## 3. Upload Dataset to the Container
-
-a. Create a `datasets` directory inside the container:
-
-```bash
-kubectl exec -n python python -- mkdir datasets
-```
-
-b. Copy the `bus_dataset.zip` file to the `datasets` directory and unzip it:
-
-```bash
-kubectl cp datasets/bus_dataset.zip python:/datasets -n python
-kubectl exec -n python python -- unzip /datasets/bus_dataset.zip -d /datasets/bus_dataset/
-```
-
-## 4. Install Python Dependencies
-
-Make sure you have a `requirements.txt` file in your `producer` folder, then install the dependencies:
-
-```bash
 kubectl exec -it python -n python -- pip install -r /producer/requirements.txt
 ```
 
-## 5. Run the Python Script
+### **Step 3**: Execute the Python Script
 
-Execute the main script from the `producer` folder:
+Run the main script located in the `producer` folder:
 
-```bash
+```
 kubectl exec -it python -n python -- python /producer/main.py
 ```
 
-## 6. Alternative Method: One-Liner to Setup and Run Python Script
+### *Alternative One-Liner*
 
-If you'd like to quickly clean the `producer` folder, upload code, and run the script in one command, use the following:
+For a rapid setup to clean the `producer` folder, upload code, and execute the script:
 
-```bash
+```
 kubectl exec -n python python -- rm -rf /producer && \
 kubectl cp producer python:/ -n python && \
 kubectl exec -it python -n python -- python /producer/main.py
 ```
 
-That's all! Follow the steps above to seamlessly run your Python code within a Kubernetes container.
+---
+
+Thank you for following this guide! Use the steps above to smoothly run your Python scripts within a Kubernetes container.
