@@ -78,7 +78,7 @@ class BusData:
         return json.dumps(asdict(self), default=datetime_serializer)
 
     def __lt__(self, other):    
-        return self.RecordedAtTime.timestamp() < other.RecordedAtTime.timestamp()
+        return self.RecordedAtTime < other.RecordedAtTime
       
 class KafkaProducerSingleton:
 
@@ -136,7 +136,7 @@ class BusDataLoader:
                     if bus_data:
                         yield bus_data
 
-    def get_busdata_in_batches(self) -> Generator[List[BusData], None, None]:
+    def get_busdata_in_batches(self) -> Iterator[List[BusData]]:
         """Used to not read the entire dataset at once, but in batches"""
         batch: List[BusData] = []
         
@@ -196,10 +196,10 @@ class BusDataLoader:
 
 
 def main():
-    bus_data_loader = BusDataLoader(file_index=0, start=1, end=100_000, batch_size=10_000)
+    bus_data_loader = BusDataLoader(file_index=0, start=1, end=500, batch_size=100)
 
     print("Sending data to kafka")
-    bus_data_loader.simulate_realtime_send()
+    bus_data_loader.send_to_kafka()
     print("Completed task")
 
 if __name__ == "__main__":
