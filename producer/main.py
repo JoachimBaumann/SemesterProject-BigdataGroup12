@@ -123,7 +123,7 @@ class BusDataLoader:
     def construct_filepath(self, index: int) -> str:
         return os.path.join(self.BASE_PATH, self.FILENAMES[index])
 
-    def get_busdata_line_by_line(self) -> Iterator[BusData]:
+    def get_busdata(self) -> Iterator[BusData]:
             """Yield BusData objects from a CSV file."""
             file_path = self.construct_filepath(self.file_index)
             
@@ -136,11 +136,11 @@ class BusDataLoader:
                     if bus_data:
                         yield bus_data
 
-    def generate_batches(self) -> Generator[List[BusData], None, None]:
+    def get_busdata_in_batches(self) -> Generator[List[BusData], None, None]:
         """Used to not read the entire dataset at once, but in batches"""
         batch: List[BusData] = []
         
-        for bus_entry in self.get_busdata_line_by_line():
+        for bus_entry in self.get_busdata():
             batch.append(bus_entry)
 
             if len(batch) == self.batch_size:
@@ -154,12 +154,13 @@ class BusDataLoader:
 
     def generate_sorted(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
-        data_source = self.get_busdata_line_by_line()
+        data_source = self.get_busdata()
 
         # Fill up the priority queue initially with sorted data
         for entry in islice(data_source, self.batch_size):
             self.priority_queue.put(entry)
 
+        # 
         while not self.priority_queue.empty():
             yield self.priority_queue.get()
 
@@ -174,15 +175,17 @@ class BusDataLoader:
         """Send data from the CSV to Kafka."""  
         kafka_producer = KafkaProducerSingleton()
 
-        for batch in self.generate_batches():
+        for batch in self.get_busdata_in_batches():
             kafka_producer.send_batch("bus", batch)
+
+
 
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
         kafka_producer = KafkaProducerSingleton()
 
-        # Using window size of 2 to compare current and previous bus entries
-        for previous, current in window(self.generate_sorted(), 2):
+
+        for previous, current in window(self.generate_sorted()):
             duration = current.RecordedAtTime - previous.RecordedAtTime
             sleep_duration = duration.total_seconds()
 
