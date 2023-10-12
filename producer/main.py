@@ -190,17 +190,11 @@ class BusDataLoader:
                 print("Failed to send, item was not in order")
                 continue
 
-            if (sleep_duration > 10.0): 
-                print("Wait too long, skipping")
-                continue
-
             if sleep_duration > 2.0:
                 print("sleeping for", sleep_duration, "seconds...")
 
             time.sleep(sleep_duration)
             kafka_producer.send("bus", current)
-
-
 
 
 def main():
