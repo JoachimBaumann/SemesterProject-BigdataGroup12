@@ -4,30 +4,31 @@ import time
 from confluent_kafka import Producer
 import socket
 from dataclasses import asdict, dataclass, field
-from dateutil.parser import parse as dateParse
-from typing import Iterable, Iterator, List, Generator, Optional, Tuple, TypeVar
+from dateutil.parser import parse as date_parse
+from typing import Iterable, Iterator, List, Generator, Optional, Self, Tuple, TypeVar
 import os
 import json
 from collections import deque
 from itertools import islice
 from queue import PriorityQueue
 
+## Utility functions
 def datetime_serializer(obj):
+    """Used for serailizing objects with datatime types."""
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     raise TypeError(f"Type not serializable: {type(obj)}")
 
-
 T = TypeVar('T')
 
-def window(iterable: Iterable[T], size: int = 2) -> Generator[Tuple[T, ...], None, None]:
+def sliding_window(iterable: Iterable[T], size: int = 2) -> Generator[Tuple[T, ...], None, None]:
     """Generates a sliding window over the iterable."""
     it = iter(iterable)
     win = deque(islice(it, size), maxlen=size)
-    yield tuple(win)
     for item in it:
-        win.append(item)
         yield tuple(win)
+        win.append(item)
+
 
 @dataclass
 class BusData:
@@ -51,9 +52,10 @@ class BusData:
 
     @classmethod
     def from_row(cls, row: List[str]) -> Optional['BusData']:
+        '''Convert a list of strings into busdata object'''
         try:
             return cls(
-                RecordedAtTime=dateParse(row[0]),
+                RecordedAtTime=date_parse(row[0]),
                 DirectionRef=int(row[1]),
                 PublishedLineName=row[2],
                 OriginName=row[3],
@@ -77,7 +79,7 @@ class BusData:
     def to_json(self):
         return json.dumps(asdict(self), default=datetime_serializer)
 
-    def __lt__(self, other):    
+    def __lt__(self, other: Self):    
         return self.RecordedAtTime < other.RecordedAtTime
       
 class BusDataLoader:
@@ -91,27 +93,30 @@ class BusDataLoader:
         self.end = end
         self.batch_size = batch_size
 
-    def construct_filepath(self, index: int) -> str:
+    def _construct_filepath(self) -> str:
+        """Convert file index to a filepath"""
+        index = self.file_index
         return os.path.join(self.BASE_PATH, self.FILENAMES[index])
 
-    def get_busdata(self) -> Iterator[BusData]:
-            """Yield BusData objects from a CSV file."""
-            file_path = self.construct_filepath(self.file_index)
-            
-            with open(file_path, "r") as csv_file:
-                csv_reader = csv.reader(csv_file)
-                rows_to_yield = islice(csv_reader, self.start, self.end + 1 if self.end is not None else None)
-                
-                for row in rows_to_yield:
-                    bus_data = BusData.from_row(row)
-                    if bus_data:
-                        yield bus_data
+    def _get_raw_rows(self) -> Iterator[List[str]]:
+        """Yield rows from the CSV file as lists of strings."""
+        file_path = self._construct_filepath()
+        with open(file_path, "r") as csv_file:
+            csv_reader = csv.reader(csv_file)
+            yield from islice(csv_reader, self.start, self.end + 1 if self.end is not None else None)
 
-    def get_busdata_in_batches(self) -> Iterator[List[BusData]]:
+    def get_busdata_entries(self) -> Iterator[BusData]:
+        """Yield BusData objects from the CSV file."""
+        for row in self._get_raw_rows():
+            bus_data = BusData.from_row(row)
+            if bus_data:
+                yield bus_data
+
+    def get_busdata_batches(self) -> Iterator[List[BusData]]:
         """Used to not read the entire dataset at once, but in batches"""
         batch: List[BusData] = []
         
-        for bus_entry in self.get_busdata():
+        for bus_entry in self.get_busdata_entries():
             batch.append(bus_entry)
 
             if len(batch) == self.batch_size:
@@ -126,7 +131,7 @@ class BusDataLoader:
     def get_busdata_sorted(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
         priority_queue = PriorityQueue(self.batch_size)
-        data_source = self.get_busdata()
+        data_source = self.get_busdata_entries()
 
         # Fill up the priority queue initially with sorted data
         for entry in islice(data_source, self.batch_size):
@@ -146,27 +151,27 @@ class BusDataSender:
         self.loader = loader
         self.producer = producer
 
-    # Send a message to Kafka.
     def _send(self, topic_name: str, data: BusData):
+        """Send a single entry to kafka"""
         self.producer.produce(topic_name, key=data.VehicleRef, value=data.to_json())
         self.producer.flush()
 
-    # Send a batch of messages to kafka
     def _send_batch(self, topic_name: str, batch: List[BusData]):
+        """Send a batch of bus_data entries to kafka"""
         for data in batch:
             self.producer.produce(topic_name, key=data.VehicleRef, value=data.to_json())
         self.producer.flush()
 
-    def send_to_kafka(self):
+    def send_all_data(self):
         """Send data from the CSV to Kafka."""  
 
-        for batch in self.loader.get_busdata_in_batches():
+        for batch in self.loader.get_busdata_batches():
             self._send_batch("bus", batch)
 
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
 
-        for previous, current in window(self.loader.get_busdata_sorted()):
+        for previous, current in sliding_window(self.loader.get_busdata_sorted()):
             duration = current.RecordedAtTime - previous.RecordedAtTime
             sleep_duration = duration.total_seconds()
 
@@ -189,9 +194,13 @@ def main():
     bus_data_loader = BusDataLoader(file_index=0, start=1, end=1000, batch_size=10_000)
     bus_data_sender = BusDataSender(loader=bus_data_loader, producer=kafka_producer)
 
-    print("Sending data to kafka")
-    bus_data_sender.send_to_kafka()
-    print("Completed task")
+    print("Sending Bulk data to kafka")
+    bus_data_sender.send_all_data()
+    print("Completed")
+
+    print("Simulating realtime sending of data to kafka")
+    bus_data_sender.simulate_realtime_send()
+    print("Completed")
 
 if __name__ == "__main__":
     main()
