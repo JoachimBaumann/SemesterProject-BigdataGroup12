@@ -191,15 +191,16 @@ def main():
         'client.id': socket.gethostname()
     }
     kafka_producer = Producer(KAFKA_CONFIG)
-    bus_data_loader = BusDataLoader(file_index=0, start=1, end=1000, batch_size=10_000)
-    bus_data_sender = BusDataSender(loader=bus_data_loader, producer=kafka_producer)
+    
+    loader = BusDataLoader(file_index=0, start=1, end=1000, batch_size=10_000)
+    sender = BusDataSender(loader=loader, producer=kafka_producer)
 
     print("Sending Bulk data to kafka")
-    bus_data_sender.send_all_data()
+    sender.send_all_data()
     print("Completed")
 
     print("Simulating realtime sending of data to kafka")
-    bus_data_sender.simulate_realtime_send()
+    sender.simulate_realtime_send()
     print("Completed")
 
 if __name__ == "__main__":
