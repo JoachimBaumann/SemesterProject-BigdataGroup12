@@ -118,7 +118,6 @@ class BusDataLoader:
         self.start = start
         self.end = end
         self.batch_size = batch_size
-        self.priority_queue = PriorityQueue(batch_size)
 
     def construct_filepath(self, index: int) -> str:
         return os.path.join(self.BASE_PATH, self.FILENAMES[index])
@@ -154,19 +153,20 @@ class BusDataLoader:
 
     def get_busdata_sorted(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
+        priority_queue = PriorityQueue(self.batch_size)
         data_source = self.get_busdata()
 
         # Fill up the priority queue initially with sorted data
         for entry in islice(data_source, self.batch_size):
-            self.priority_queue.put(entry)
+            priority_queue.put(entry)
 
-        # 
-        while not self.priority_queue.empty():
-            yield self.priority_queue.get()
+        # Return the lowest priotiry, then update 
+        while not priority_queue.empty():
+            yield priority_queue.get()
 
             next_bus_entry = next(data_source, None)
             if next_bus_entry:
-                self.priority_queue.put(next_bus_entry)
+                priority_queue.put(next_bus_entry)
 
 
     def send_to_kafka(self):
@@ -196,10 +196,10 @@ class BusDataLoader:
 
 
 def main():
-    bus_data_loader = BusDataLoader(file_index=0, start=1, end=500, batch_size=100)
+    bus_data_loader = BusDataLoader(file_index=0, start=1, end=100_000, batch_size=10_000)
 
     print("Sending data to kafka")
-    bus_data_loader.send_to_kafka()
+    bus_data_loader.simulate_realtime_send()
     print("Completed task")
 
 if __name__ == "__main__":
