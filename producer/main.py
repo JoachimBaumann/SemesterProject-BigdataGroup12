@@ -80,34 +80,6 @@ class BusData:
     def __lt__(self, other):    
         return self.RecordedAtTime < other.RecordedAtTime
       
-class KafkaProducerSingleton:
-
-    KAFKA_CONFIG = {
-        'bootstrap.servers': 'redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093',
-        'client.id': socket.gethostname()
-    }
-
-    _singleton_instance = None
-    
-    def __new__(cls, *args, **kwargs):
-        if not cls._singleton_instance:
-            cls._singleton_instance = super(KafkaProducerSingleton, cls).__new__(cls, *args, **kwargs)
-            # Initializing the producer instance here to ensure it's done once.
-            cls._singleton_instance.producer_instance = Producer(cls.KAFKA_CONFIG)
-        return cls._singleton_instance
-
-    # Send a message to Kafka.
-    def send(self, topic_name: str, data: BusData):
-        self.producer_instance.produce(topic_name, key=data.VehicleRef, value=data.to_json())
-        self.producer_instance.flush()
-
-    # Send a batch of messages to kafka
-    def send_batch(self, topic_name: str, batch: List[BusData]):
-        for data in batch:
-            self.producer_instance.produce(topic_name, key=data.VehicleRef, value=data.to_json())
-        self.producer_instance.flush()
-
-
 class BusDataLoader:
 
     BASE_PATH = "datasets/bus_dataset/"
@@ -168,19 +140,33 @@ class BusDataLoader:
             if next_bus_entry:
                 priority_queue.put(next_bus_entry)
 
+class BusDataSender:
+
+    def __init__(self, loader: BusDataLoader, producer) -> None:
+        self.loader = loader
+        self.producer = producer
+
+    # Send a message to Kafka.
+    def _send(self, topic_name: str, data: BusData):
+        self.producer.produce(topic_name, key=data.VehicleRef, value=data.to_json())
+        self.producer.flush()
+
+    # Send a batch of messages to kafka
+    def _send_batch(self, topic_name: str, batch: List[BusData]):
+        for data in batch:
+            self.producer.produce(topic_name, key=data.VehicleRef, value=data.to_json())
+        self.producer.flush()
 
     def send_to_kafka(self):
         """Send data from the CSV to Kafka."""  
-        kafka_producer = KafkaProducerSingleton()
 
-        for batch in self.get_busdata_in_batches():
-            kafka_producer.send_batch("bus", batch)
+        for batch in self.loader.get_busdata_in_batches():
+            self._send_batch("bus", batch)
 
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
-        kafka_producer = KafkaProducerSingleton()
 
-        for previous, current in window(self.get_busdata_sorted()):
+        for previous, current in window(self.loader.get_busdata_sorted()):
             duration = current.RecordedAtTime - previous.RecordedAtTime
             sleep_duration = duration.total_seconds()
 
@@ -192,14 +178,19 @@ class BusDataLoader:
                 print("sleeping for", sleep_duration, "seconds...")
 
             time.sleep(sleep_duration)
-            kafka_producer.send("bus", current)
-
+            self._send("bus", current)
 
 def main():
-    bus_data_loader = BusDataLoader(file_index=0, start=1, end=100_000, batch_size=10_000)
+    KAFKA_CONFIG = {
+        'bootstrap.servers': 'redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093',
+        'client.id': socket.gethostname()
+    }
+    kafka_producer = Producer(KAFKA_CONFIG)
+    bus_data_loader = BusDataLoader(file_index=0, start=1, end=1000, batch_size=10_000)
+    bus_data_sender = BusDataSender(loader=bus_data_loader, producer=kafka_producer)
 
     print("Sending data to kafka")
-    bus_data_loader.simulate_realtime_send()
+    bus_data_sender.send_to_kafka()
     print("Completed task")
 
 if __name__ == "__main__":
