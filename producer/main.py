@@ -113,7 +113,7 @@ class BusDataLoader:
     BASE_PATH = "datasets/bus_dataset/"
     FILENAMES = ["mta_1706.csv", "mta_1708.csv", "mta_1710.csv", "mta_1712.csv"]
 
-    def __init__(self, file_index: int, start: int = 0, end: int | None = None, batch_size = 1):
+    def __init__(self, file_index: int, start: int = 1, end: int | None = None, batch_size = 10_000):
         self.file_index = file_index
         self.start = start
         self.end = end
@@ -152,7 +152,7 @@ class BusDataLoader:
             yield batch
 
 
-    def generate_sorted(self) -> Iterator[BusData]:
+    def get_busdata_sorted(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
         data_source = self.get_busdata()
 
@@ -169,8 +169,6 @@ class BusDataLoader:
                 self.priority_queue.put(next_bus_entry)
 
 
-
-
     def send_to_kafka(self):
         """Send data from the CSV to Kafka."""  
         kafka_producer = KafkaProducerSingleton()
@@ -178,14 +176,11 @@ class BusDataLoader:
         for batch in self.get_busdata_in_batches():
             kafka_producer.send_batch("bus", batch)
 
-
-
     def simulate_realtime_send(self):
         """Simulate real-time data sending based on RecordedAtTime."""
         kafka_producer = KafkaProducerSingleton()
 
-
-        for previous, current in window(self.generate_sorted()):
+        for previous, current in window(self.get_busdata_sorted()):
             duration = current.RecordedAtTime - previous.RecordedAtTime
             sleep_duration = duration.total_seconds()
 
