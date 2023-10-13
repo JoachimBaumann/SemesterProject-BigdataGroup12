@@ -7,29 +7,6 @@ from dateutil.parser import parse as date_parse
 from models.taxi_data import TaxiData
 from loaders.interface import DataLoader
 
-class SQLiteConnectionPool:
-    def __init__(self, database_path: str, pool_size: int = 5):
-        self.database_path = database_path
-        self.pool_size = pool_size
-        self._pool = []
-        self._used = []
-
-    def get_connection(self) -> sqlite3.Connection:
-        for conn in self._pool:
-            if conn not in self._used:
-                self._used.append(conn)
-                return conn
-        if len(self._pool) < self.pool_size:
-            conn = sqlite3.connect(self.database_path)
-            self._pool.append(conn)
-            self._used.append(conn)
-            return conn
-        raise Exception("All connections are currently in use")
-
-    def release_connection(self, conn: sqlite3.Connection):
-        self._used.remove(conn)
-
-
 class TaxiDataLoader(DataLoader[TaxiData]):
 
     def __init__(self, start_date: datetime, end_date: datetime, batch_size=10_000, base_path: str="datasets/taxi_dataset/2019/"):
@@ -39,7 +16,6 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         self.batch_size = batch_size
         self.base_path = base_path 
         self.filepath = self._construct_filepath()
-        self.connection_pool = SQLiteConnectionPool(self.filepath)
 
     def _construct_filepath(self) -> str:
         """Construct the path based on the month."""
@@ -49,9 +25,10 @@ class TaxiDataLoader(DataLoader[TaxiData]):
 
     def _connect_to_database(self) -> Optional[sqlite3.Connection]:
         try:
-            return self.connection_pool.get_connection()
-        except Exception as e:
-            print(f"Error when fetching connection from pool: {e}")
+            # Directly open a new connection for the thread
+            return sqlite3.connect(self.filepath)
+        except sqlite3.Error as e:
+            print(f"Error when connecting to the database: {e}")
             return None
 
     def _execute_query(self, conn: sqlite3.Connection, query: str) -> Iterator[Tuple]:
@@ -66,7 +43,7 @@ class TaxiDataLoader(DataLoader[TaxiData]):
             print(f"SQLite error when executing query: {e}")
         finally:
             cursor.close()
-            self.connection_pool.release_connection(conn)
+            conn.close()  # Close the connection
 
     def _get_raw_entries(self) -> Iterator[Tuple]:
         """Yield rows from the SQLite file in a sorted manner."""
