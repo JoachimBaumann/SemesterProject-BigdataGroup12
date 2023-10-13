@@ -16,12 +16,12 @@ def main():
 
     kafka_producer = Producer(KAFKA_CONFIG)
 
-    start_date = datetime(2019, 3, 1, 12, 20)
-    end_date = datetime(2019, 3, 1, 12, 30)
+    start_date = datetime(2019, 1, 3, 12)
+    end_date = datetime(2019, 1, 3, 13)
     batch_size = 1000
 
     taxi_loader = TaxiDataLoader(start_date, end_date, batch_size)
-    bus_loader = BusDataLoader(file_index=0, start=1, end=100, batch_size=batch_size)
+    bus_loader = BusDataLoader(file_index=0, start=1, end=10000, batch_size=batch_size)
     
     taxi_sender = DataSender(loader=taxi_loader, producer=kafka_producer, topic="taxi-data")
     bus_sender = DataSender(loader=bus_loader, producer=kafka_producer, topic="bus-data")
@@ -35,6 +35,7 @@ def main():
     with ThreadPoolExecutor(max_workers=2) as executor:
         executor.submit(taxi_sender.simulate_realtime_send)
         executor.submit(bus_sender.simulate_realtime_send)
+
 
 if __name__ == "__main__":
     main()

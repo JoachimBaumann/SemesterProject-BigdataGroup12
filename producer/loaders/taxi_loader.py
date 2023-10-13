@@ -92,7 +92,7 @@ class TaxiDataLoader(DataLoader[TaxiData]):
                 tolls_amount=float(row[14]),
                 improvement_surcharge=float(row[15]),
                 total_amount=float(row[16]),
-                congestion_surcharge=float(row[17])
+                congestion_surcharge=row[17]
             )
         except (ValueError, IndexError):
             return None
