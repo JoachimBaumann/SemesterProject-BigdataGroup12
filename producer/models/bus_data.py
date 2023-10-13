@@ -1,12 +1,12 @@
 import datetime
 from dataclasses import asdict, dataclass, field
-from dateutil.parser import parse as date_parse
 import json
+from models.interfaces import Data
 
 from utils.serializer import datetime_serializer
 
 @dataclass
-class BusData:
+class BusData(Data):
     RecordedAtTime: datetime.datetime = field(compare=True)
     DirectionRef: int
     PublishedLineName: str
@@ -25,6 +25,14 @@ class BusData:
     ExpectedArrivalTime: str
     ScheduledArrivalTime: str
     
+    @property
+    def unique_identifier(self) -> str:
+        return self.VehicleRef
+    
+    @property
+    def timestamp(self) -> datetime:
+        return self.RecordedAtTime
+
     def to_json(self):
         return json.dumps(asdict(self), default=datetime_serializer)
 

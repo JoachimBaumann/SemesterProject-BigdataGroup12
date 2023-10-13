@@ -30,25 +30,17 @@ class BusDataLoader:
             csv_reader = csv.reader(csv_file)
             yield from islice(csv_reader, self.start, self.end + 1 if self.end is not None else None)
 
-    def get_busdata_entries(self) -> Iterator[BusData]:
+    def _get_busdata_entries(self) -> Iterator[BusData]:
         """Yield BusData objects from the CSV file."""
         for row in self._get_raw_rows():
             bus_data = self._from_row(row)
             if bus_data:
                 yield bus_data
 
-    def get_busdata_batches(self) -> Iterator[List[BusData]]:
-        """ Divides the dataset into batches of of length `batch_size`. The last batch may be smaller if the total entries aren't a multiple of `batch_size`. """
-        iterable = iter(self.get_busdata_entries())
-
-        while batch := list(islice(iterable, self.batch_size)):
-            yield batch
-
-
-    def get_busdata_entries_in_order(self) -> Iterator[BusData]:
+    def get_entries_in_order(self) -> Iterator[BusData]:
         """Used to load data into a priority queue and yield sorted items based on RecordedAtTime."""
         priority_queue = PriorityQueue(self.batch_size)
-        data_source = self.get_busdata_entries()
+        data_source = self._get_busdata_entries()
 
         # Fill up the priority queue initially with sorted data
         for entry in islice(data_source, self.batch_size):
@@ -61,6 +53,16 @@ class BusDataLoader:
             next_bus_entry = next(data_source, None)
             if next_bus_entry:
                 priority_queue.put(next_bus_entry)
+
+    def get_batches(self) -> Iterator[List[BusData]]:
+        """ Divides the dataset into batches of of length `batch_size`. The last batch may be smaller if the total entries aren't a multiple of `batch_size`. """
+        iterable = iter(self._get_busdata_entries())
+
+        while batch := list(islice(iterable, self.batch_size)):
+            yield batch
+
+
+
 
     def _from_row(self, row: List[str]) -> Optional[BusData]:
         '''Convert a list of strings into busdata object'''
