@@ -26,10 +26,9 @@ def main():
     taxi_sender = DataSender(loader=taxi_loader, producer=kafka_producer, topic="taxi-data")
     bus_sender = DataSender(loader=bus_loader, producer=kafka_producer, topic="bus-data")
 
-    print("Sending Bulk data to kafka")
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(taxi_sender.send_all_data)
-        executor.submit(bus_sender.send_all_data)
+    print("Sending data in bulk to kafka")
+    taxi_sender.send_all_data()
+    bus_sender.send_all_data()
     
     print("Sending Realtime data to kafka")
     with ThreadPoolExecutor(max_workers=2) as executor:
