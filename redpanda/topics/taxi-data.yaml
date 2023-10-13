@@ -1,9 +1,9 @@
 apiVersion: cluster.redpanda.com/v1alpha1
 kind: Topic
 metadata:
-  name: twitch-chat
+  name: taxi-data
 spec:
-  partitions: 3
+  partitions: 6
   replicationFactor: 3
   kafkaApiSpec:
     brokers:

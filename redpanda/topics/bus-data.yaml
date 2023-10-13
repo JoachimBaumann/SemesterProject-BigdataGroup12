@@ -1,9 +1,9 @@
 apiVersion: cluster.redpanda.com/v1alpha1
 kind: Topic
 metadata:
-  name: bus
+  name: bus-data
 spec:
-  partitions: 5
+  partitions: 6
   replicationFactor: 3
   kafkaApiSpec:
     brokers:

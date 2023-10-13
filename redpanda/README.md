@@ -127,5 +127,5 @@ kubectl -n redpanda port-forward svc/redpanda-console 8080:8080
 
 **Add new topic**
 ``` bash
-kubectl -n redpanda apply -f redpanda/topics/bus.yaml
+kubectl -n redpanda apply -f redpanda/topics/bus-data.yaml
 ```
