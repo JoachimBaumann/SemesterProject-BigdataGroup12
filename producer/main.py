@@ -7,21 +7,22 @@ from loaders.bus_loader import BusDataLoader
 from loaders.taxi_loader import TaxiDataLoader
 from senders.sender import DataSender
 
-KAFKA_CONFIG = {
-    'bootstrap.servers': 'redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093',
-    'client.id': socket.gethostname()
-}
+
 
 def main():
 
-    kafka_producer = Producer(KAFKA_CONFIG)
+    KAFKA_CONFIG = {
+    'bootstrap.servers': 'redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093',
+    'client.id': socket.gethostname()
+    }
 
     start_date = datetime(2019, 1, 3, 12)
     end_date = datetime(2019, 1, 3, 13)
-    batch_size = 1000
+    batch_size = 100
 
+    kafka_producer = Producer(KAFKA_CONFIG)
     taxi_loader = TaxiDataLoader(start_date, end_date, batch_size)
-    bus_loader = BusDataLoader(file_index=0, start=1, end=10000, batch_size=batch_size)
+    bus_loader = BusDataLoader(file_index=0, start=1, end=300, batch_size=batch_size)
     
     taxi_sender = DataSender(loader=taxi_loader, producer=kafka_producer, topic="taxi-data")
     bus_sender = DataSender(loader=bus_loader, producer=kafka_producer, topic="bus-data")

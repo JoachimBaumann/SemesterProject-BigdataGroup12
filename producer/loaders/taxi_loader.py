@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Iterator, List, Optional, Tuple
-from itertools import islice
 import os
 import sqlite3
 from dateutil.parser import parse as date_parse
@@ -18,61 +17,52 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         self.filepath = self._construct_filepath()
 
     def _construct_filepath(self) -> str:
-        """Construct the path based on the month."""
         month = self.date_from.month
         filename = f"2019-{month:02}.sqlite"
         return os.path.join(self.base_path, filename)
 
     def _connect_to_database(self) -> Optional[sqlite3.Connection]:
         try:
-            # Directly open a new connection for the thread
             return sqlite3.connect(self.filepath)
         except sqlite3.Error as e:
             print(f"Error when connecting to the database: {e}")
             return None
 
-    def _execute_query(self, conn: sqlite3.Connection, query: str) -> Iterator[Tuple]:
+    def _execute_query(self, conn: sqlite3.Connection, query: str) -> Iterator[List[Tuple]]:
         try:
             with conn:
                 cursor = conn.cursor()
                 cursor.execute(query)
                 while (batch := cursor.fetchmany(self.batch_size)):
-                    for row in batch:
-                        yield row
+                    yield batch
         except sqlite3.Error as e:
             print(f"SQLite error when executing query: {e}")
         finally:
             cursor.close()
-            conn.close()  # Close the connection
+            conn.close()
 
-    def _get_raw_entries(self) -> Iterator[Tuple]:
-        """Yield rows from the SQLite file in a sorted manner."""
-        
-        # Construct the query using date_from and date_to
+    def _get_raw_batch(self) -> Iterator[List[Tuple]]:
         query = f"SELECT * FROM tripdata WHERE tpep_pickup_datetime BETWEEN '{self.date_from}' AND '{self.date_to}' ORDER BY tpep_pickup_datetime ASC;"
-        
         conn = self._connect_to_database()
         if conn:
             yield from self._execute_query(conn, query)
 
+
+    def _parsed_batch(self) -> Iterator[List[TaxiData]]:
+        """Iterate over a raw batch and"""
+        for raw_batch in self._get_raw_batch():
+            parsed_batch = list(filter(None, map(self._from_raw, raw_batch)))
+            yield parsed_batch
+
     def get_entries_in_order(self) -> Iterator[TaxiData]:
-        """Yield TaxiData objects from the SQLite file."""
-        for row in self._get_raw_entries():
-            taxi_data = self._from_raw(row)
-            if taxi_data:
+        for batch in self._parsed_batch():
+            for taxi_data in batch:
                 yield taxi_data
 
     def get_batches(self) -> Iterator[List[TaxiData]]:
-        """ 
-        Divides the dataset into batches of length `batch_size`. 
-        The last batch may be smaller if the total entries aren't a multiple of `batch_size`. 
-        """
-        iterable = iter(self.get_entries_in_order())
-        while batch := list(islice(iterable, self.batch_size)):
-            yield batch
+        yield from self._parsed_batch()
 
     def _from_raw(self, row) -> Optional[TaxiData]:
-        '''Convert a row into a TaxiData object.'''
         try:
             return TaxiData(
                 vendorid=int(row[0]),

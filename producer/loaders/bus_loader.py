@@ -62,8 +62,6 @@ class BusDataLoader:
             yield batch
 
 
-
-
     def _from_row(self, row: List[str]) -> Optional[BusData]:
         '''Convert a list of strings into busdata object'''
         try:

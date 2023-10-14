@@ -54,14 +54,15 @@ class TestTaxiDataLoader(unittest.TestCase):
 
 
     def test_all_values_parsed_correctly(self):
-        entries = list(self.loader._get_raw_entries())
 
-        # Ensuring data isn't empty
-        self.assertGreater(len(entries), 0)
-
-        for idx, entry in enumerate(entries):
-            taxi_data = self.loader._from_raw(entry)
-            self.assertIsNotNone(taxi_data, f"Value for data entry {idx} is None")
+        count = 0
+        for idx, batch in enumerate(self.loader._get_raw_batch()):
+            for entry in batch:
+                taxi_data = self.loader._from_raw(entry)
+                self.assertIsNotNone(taxi_data, f"Value for data entry {idx} is None")
+                count = count +1
+        
+        self.assertGreater(count, 0)
 
 if __name__ == '__main__':
     unittest.main()
