@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime
 import os
 from itertools import islice
 from queue import PriorityQueue
@@ -17,6 +18,32 @@ class BusDataLoader:
         self.start = start
         self.end = end
         self.batch_size = batch_size
+
+    def set_range_from_datetime(self, date_start: datetime, date_end: datetime):
+        best_start_tuple = 0, float('inf')
+        best_end_tuple = 0, float('inf')
+
+        print("Looking for row to start from")
+
+        for i, row in enumerate(self._get_raw_rows()):
+
+            timestamp = date_parse(row[0])
+            
+            diff_start = abs((date_start - timestamp).total_seconds())
+            diff_end = abs((date_end - timestamp).total_seconds())
+
+            if diff_start < best_start_tuple[1]:
+                print(f"updateing start value: i: {i}, date: {timestamp}")
+                best_start_tuple = i, diff_start
+            
+            if diff_end < best_end_tuple[1]:
+                print(f"updateing end value: i: {i}, date: {timestamp}")
+                best_end_tuple = i, diff_end
+        
+        self.start = best_start_tuple[0]
+        self.end = best_end_tuple[0]
+
+        print(self.start, self.end)
 
     def _construct_filepath(self) -> str:
         """Convert file index to a filepath"""
