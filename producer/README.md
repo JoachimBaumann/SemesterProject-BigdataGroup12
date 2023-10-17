@@ -42,7 +42,7 @@ kubectl run python  -n python -i --tty --image python:3.11 -- bash
 
 1. Generate a `datasets` directory in the container:
 
-    ```
+    ``` bash
     kubectl exec -n python python -- mkdir datasets
     ```
 
@@ -98,7 +98,7 @@ kubectl exec -it python -n python -- python /producer/main.py
 
 For a rapid setup to clean the `producer` folder, upload code, and execute the script:
 
-```
+``` bash
 kubectl exec -n python python -- rm -rf /producer && \
 kubectl cp producer python:/ -n python && \
 kubectl exec -it python -n python -- python /producer/main.py
