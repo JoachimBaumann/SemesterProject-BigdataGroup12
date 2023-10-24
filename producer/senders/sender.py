@@ -1,3 +1,4 @@
+from datetime import timezone
 import time
 from typing import List
 from loaders.interface import DataLoader
@@ -13,13 +14,15 @@ class DataSender:
 
     def _send(self, data: Data):
         """Send a single entry to kafka"""
-        self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json())
+        utc_milliseconds_time = int(data.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000)
+        self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json(), timestamp=utc_milliseconds_time)
         self.producer.flush()
 
     def _send_batch(self, batch: List[Data]):
         """Send a batch of data entries to kafka"""
         for data in batch:
-            self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json())
+            utc_milliseconds_time = int(data.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000)
+            self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json(), timestamp=utc_milliseconds_time)
         self.producer.flush()
 
     def send_all_data(self):
