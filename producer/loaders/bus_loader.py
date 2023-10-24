@@ -92,8 +92,10 @@ class BusDataLoader:
     def _from_row(self, row: List[str]) -> Optional[BusData]:
         '''Convert a list of strings into busdata object'''
         try:
+            timestamp = date_parse(row[0])
+            timestamp.year = 2019
             return BusData(
-                RecordedAtTime=date_parse(row[0]),
+                RecordedAtTime=date_parse(timestamp),
                 DirectionRef=int(row[1]),
                 PublishedLineName=row[2],
                 OriginName=row[3],
