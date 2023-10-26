@@ -12,5 +12,9 @@ spec:
       initContainers:
         setDataDirOwnership:
           enabled: true
+    monitoring:
+      enabled: true
+      scrapeInterval: 30s
+
     tls:
       enabled: false
