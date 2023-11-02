@@ -1,10 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import socket
 from confluent_kafka import Producer
-from concurrent.futures import ThreadPoolExecutor
 
-from loaders.bus_loader import BusDataLoader
-from loaders.taxi_loader import TaxiDataLoader
+from loaders.mocked_bus_loader import MockedBusDataLoader
 from senders.sender import DataSender
 
 KAFKA_CONFIG = {
@@ -14,13 +12,10 @@ KAFKA_CONFIG = {
 
 def test_performance():
 
-    batch_size = 25_000
-
     kafka_producer = Producer(KAFKA_CONFIG)
-    bus_loader = BusDataLoader(file_index=0, start=1, end=1_000_000, batch_size=batch_size)
+    mock_loader = MockedBusDataLoader(file_index=0, duration=timedelta(seconds=30), batch_size=1_000)
     
-    bus_sender = DataSender(loader=bus_loader, producer=kafka_producer, topic="bus-data")
-
+    bus_sender = DataSender(loader=mock_loader, producer=kafka_producer, topic="bus-data")
     bus_sender.send_all_data()
 
 

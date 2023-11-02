@@ -5,16 +5,5 @@ metadata:
 spec:
   chartRef: {}
   clusterSpec:
-    external:
-      domain: customredpandadomain.local
-    statefulset:
-      replicas: 3
-      initContainers:
-        setDataDirOwnership:
-          enabled: true
-    monitoring:
-      enabled: true
-      scrapeInterval: 30s
-
     tls:
       enabled: false

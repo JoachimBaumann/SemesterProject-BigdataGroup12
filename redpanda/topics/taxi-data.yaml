@@ -3,7 +3,7 @@ kind: Topic
 metadata:
   name: taxi-data
 spec:
-  partitions: 6
+  partitions: 3
   replicationFactor: 3
   kafkaApiSpec:
     brokers:

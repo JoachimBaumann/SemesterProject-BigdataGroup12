@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from itertools import islice
 from queue import PriorityQueue
@@ -9,42 +9,18 @@ from models.bus_data import BusData
 from loaders.interface import DataLoader
 
 
-class BusDataLoader(DataLoader[BusData]):
+class MockedBusDataLoader(DataLoader[BusData]):
 
     BASE_PATH = "datasets/bus_dataset/"
     FILENAMES = ["mta_1706.csv", "mta_1708.csv", "mta_1710.csv", "mta_1712.csv"]
 
-    def __init__(self, file_index: int, start: int = 1, end: int | None = None, batch_size = 10_000):
+    def __init__(self, file_index: int, duration: timedelta, batch_size = 10_000):
         self.file_index = file_index
-        self.start = start
-        self.end = end
+        self.start = 1
+        self.end = batch_size
+        self.duration = duration
         self.batch_size = batch_size
 
-    def set_range_from_datetime(self, date_start: datetime, date_end: datetime):
-        best_start_tuple = 0, float('inf')
-        best_end_tuple = 0, float('inf')
-
-        print("Looking for row to start from")
-
-        for i, row in enumerate(self._get_raw_rows()):
-
-            timestamp = date_parse(row[0])
-            
-            diff_start = abs((date_start - timestamp).total_seconds())
-            diff_end = abs((date_end - timestamp).total_seconds())
-
-            if diff_start < best_start_tuple[1]:
-                print(f"updateing start value: i: {i}, date: {timestamp}")
-                best_start_tuple = i, diff_start
-            
-            if diff_end < best_end_tuple[1]:
-                print(f"updateing end value: i: {i}, date: {timestamp}")
-                best_end_tuple = i, diff_end
-        
-        self.start = best_start_tuple[0]
-        self.end = best_end_tuple[0]
-
-        print(self.start, self.end)
 
     def _construct_filepath(self) -> str:
         """Convert file index to a filepath"""
@@ -83,10 +59,12 @@ class BusDataLoader(DataLoader[BusData]):
                 priority_queue.put(next_bus_entry)
 
     def get_batches(self) -> Iterator[List[BusData]]:
-        """ Divides the dataset into batches of of length `batch_size`. The last batch may be smaller if the total entries aren't a multiple of `batch_size`. """
         iterable = iter(self._get_busdata_entries())
 
-        while batch := list(islice(iterable, self.batch_size)):
+        batch = list(islice(iterable, self.batch_size))
+        start_time = datetime.now()
+
+        while datetime.now() - start_time < self.duration:
             yield batch
 
 
