@@ -1,0 +1,20 @@
+# Use a lightweight base image
+FROM alpine:latest
+
+# Install unzip utility
+RUN apk add --no-cache unzip
+
+# Create a directory for the datasets
+WORKDIR /datasets
+
+# Copy the datasets into the container and unzip them
+COPY bus_dataset.zip taxi_dataset.zip /datasets/
+
+# Unzip the datasets and remove the zip files
+RUN unzip /datasets/bus_dataset.zip -d /datasets/bus_dataset/ && \
+    rm /datasets/bus_dataset.zip && \
+    unzip /datasets/taxi_dataset.zip -d /datasets/taxi_dataset/ && \
+    rm /datasets/taxi_dataset.zip
+
+# This container will be used as a data volume
+CMD ["echo", "Data container for datasets"]
