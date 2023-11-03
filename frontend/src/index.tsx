@@ -56,7 +56,6 @@ const app = new Elysia()
   .get("/", () => {
     return (
       <BaseHtml>
-
         <div class="flex flex-col justify-center content-center">
 
           <div hx-ext="sse" sse-connect="/stats_stream" class="stats shadow-lg" >
@@ -91,14 +90,12 @@ const app = new Elysia()
               </div>
               <div sse-swap="average-tip-desc" class="stat-desc"></div>
             </div>
-
           </div>
-        </div>
 
+        </div>
       </BaseHtml>
     )
   })
-  .post("/clicked", () => <div class="text-xl font-serif">I'm from the server!</div>)
   .listen(3000);
 
 console.log(
