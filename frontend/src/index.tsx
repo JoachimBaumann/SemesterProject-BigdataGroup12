@@ -4,10 +4,16 @@ import { BaseHtml } from "./components/base";
 import Stream from "@elysiajs/stream";
 
 
+/**
+ * Generates a random integer between two inclusive bounds.
+ * @param {number} min - The inclusive lower bound of the range.
+ * @param {number} max - The inclusive upper bound of the range.
+ * @returns {number} A random integer between the inclusive bounds.
+ */
 function getRandomIntInclusive(min: number, max: number) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1) + min); //The maximum is inclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 const app = new Elysia()
