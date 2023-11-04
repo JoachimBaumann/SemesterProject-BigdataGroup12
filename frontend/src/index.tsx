@@ -56,7 +56,7 @@ const app = new Elysia()
   .get("/", () => {
     return (
       <BaseHtml>
-        <div class="flex flex-col justify-center content-center">
+        <div class="flex flex-col mt-4 justify-center content-center">
 
           <div hx-ext="sse" sse-connect="/stats_stream" class="stats shadow-lg" >
             <div class="stat">

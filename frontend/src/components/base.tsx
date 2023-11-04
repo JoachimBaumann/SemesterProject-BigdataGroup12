@@ -1,21 +1,5 @@
-type Children =
-  | number
-  | string
-  | Promise<string>
-  | boolean
-  | null
-  | undefined
-  | Children[]
 
-type PropsWithChildren<T = {}> = {
-  children?: Children
-} & T
-
-
-
-
-
-export const BaseHtml = ({ children }: PropsWithChildren) => (
+export const BaseHtml = ({ children }: { children: undefined | {} }) => (
   <html lang="en">
     <head>
       <meta charset="utf-8" />
