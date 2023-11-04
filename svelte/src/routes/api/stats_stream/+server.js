@@ -7,7 +7,6 @@ import { events } from 'sveltekit-sse'
  */
 const delay = milliseconds => new Promise(r => setTimeout(r, milliseconds))
 
-
 /**
  * Generates a random integer between two inclusive bounds.
  * @param {number} min - The inclusive lower bound of the range.

@@ -3,13 +3,6 @@ import { html } from "@elysiajs/html";
 import { BaseHtml } from "./components/base";
 import Stream from "@elysiajs/stream";
 
-
-/**
- * Generates a random integer between two inclusive bounds.
- * @param {number} min - The inclusive lower bound of the range.
- * @param {number} max - The inclusive upper bound of the range.
- * @returns {number} A random integer between the inclusive bounds.
- */
 function getRandomIntInclusive(min: number, max: number) {
   min = Math.ceil(min);
   max = Math.floor(max);
