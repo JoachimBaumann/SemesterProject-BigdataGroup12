@@ -3,6 +3,33 @@ import { html } from "@elysiajs/html";
 import { BaseHtml } from "./components/base";
 import Stream from "@elysiajs/stream";
 
+
+import {scaleQuantize} from 'd3-scale';
+import { schemeBlues, schemePurples } from 'd3-scale-chromatic';
+import { GeoPermissibleObjects, geoPath, geoAlbers } from 'd3-geo';
+
+import * as topojson from 'topojson-client';
+
+import ny from './data/ny.json';
+
+const counties = topojson.feature(ny, ny.objects.collection);
+
+var width = 1000, 
+    height = 1000;
+
+var albersProjection = geoAlbers()
+    .rotate([74,0]) // NYC is at approximately 74°W longitude
+    .center([0,41.7128]) // NYC is at approximately 40.7128°N latitude
+    .parallels([29.5, 45.5]) // Standard parallels for New York State
+    .translate([width / 5, height / 1.5])
+    .scale(10000); // Scale will need to be adjusted based on trial and error to fit NYC in the canvas
+
+// Construct a geographic path generator.
+const path = geoPath(albersProjection);
+
+// Prepare the scale color encoding.
+const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
+
 function getRandomIntInclusive(min: number, max: number) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -18,7 +45,7 @@ const app = new Elysia()
       const i = getRandomIntInclusive(1, 100)
       stream.event = "distance-traveled"
       stream.send(<>{i} km</>)
-    }, 3000)
+    }, 2750)
 
     const interval_2 = setInterval(() => {
       const count = getRandomIntInclusive(1000, 7000)
@@ -51,6 +78,42 @@ const app = new Elysia()
     }, 30_000)
 
     return stream
+  })
+  .get("/stream_map", () => {
+    const stream = new Stream()
+
+    const interval = setInterval(() => { 
+
+      const svg = 
+        <svg width={1000} height={1000} viewBox="0 0 1000 1000" style:max-width="100%" style:height="auto" style="background-color: transparent;" >
+          <g class="data" >
+            {counties.features.map((county: GeoPermissibleObjects) => {
+              const color_value = getRandomIntInclusive(1, 10)
+              let color = colorScale(color_value)
+              const geoId: string = county.properties.geo_id
+              if (geoId == "BK93") {
+                color = "none"
+              }
+              return (
+              <g>
+                <path id={geoId} fill={color} d={path(county)} />
+              </g>)
+            })}
+          </g>
+
+          <path fill="none" stroke="white" stroke-linejoin="round" />
+        </svg>
+      stream.send(svg)
+    }, 3333)
+
+
+    setTimeout(() => {
+      clearInterval(interval)
+      stream.close()
+    }, 30_000)
+
+    return stream
+
   })
   .get("/", () => {
     return (
@@ -91,14 +154,20 @@ const app = new Elysia()
             </div>
           </div>
 
+          
+          <div class="flex flex-row justify-center content-center items-center" hx-ext="sse" sse-connect="/stream_map" sse-swap="message">
+            <div class="loading loading-ring mt-48 w-1/3"></div>
+          </div>
         </div>
+        
       </BaseHtml>
+      
     )
   })
   .listen(3000);
 
+  
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );
-
 

@@ -1,4 +1,5 @@
 
+
 export const BaseHtml = ({ children }: { children: undefined | {} }) => (
   <html lang="en">
     <head>
@@ -7,9 +8,12 @@ export const BaseHtml = ({ children }: { children: undefined | {} }) => (
       <title>Hello World</title>
       <script src="https://unpkg.com/htmx.org@1.9.6"></script>
       <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
-      <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
       <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
       <script src="https://cdn.tailwindcss.com"></script>
+      <script>
+        
+
+      </script>
     </head>
 
     <body>
