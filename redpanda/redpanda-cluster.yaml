@@ -5,5 +5,9 @@ metadata:
 spec:
   chartRef: {}
   clusterSpec:
+    resources:
+      cpu:
+        cores: 500m
     tls:
       enabled: false
+  
