@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swegroup12-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swegroup12
+  template:
+    metadata:
+      labels:
+        app: swegroup12
+    spec:
+      containers:
+      - name: swegroup12
+        image: hansaskov/swegroup12:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
