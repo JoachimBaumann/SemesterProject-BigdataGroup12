@@ -38,6 +38,9 @@ kubectl create namespace python
 kubectl run python  -n python -i --tty --image python:3.11 -- bash 
 ```
 
+If you want to launch and run an existing python container, use:
+kubectl exec -it python -n python -- bash
+
 ### **Step 5**: Transfer Datasets to the Container
 
 1. Generate a `datasets` directory in the container:
@@ -63,6 +66,18 @@ kubectl run python  -n python -i --tty --image python:3.11 -- bash
         ```
 
 _Note: Dataset transfer may take a while, so patience is key._
+_question: why do we need to decpmpress the datasets?_
+    Decompressing datasets is necessary when working with compressed files such as ZIP files for several reasons:
+
+    Data Access: Compressed files, like ZIP archives, are stored in a compressed format to reduce file size. Decompressing the files makes the data accessible in its original form. If you attempt to read or manipulate data within a compressed file directly, it will be unreadable and unusable by most applications.
+
+    Data Processing: Many data processing libraries and tools expect data in its raw, uncompressed form. Decompressing the data allows you to use standard data processing tools and libraries without having to build custom decompression logic.
+
+    Efficient Storage: While compressed files save disk space, they are not suitable for efficient data access and manipulation. Decompressing the files allows you to work with the data more efficiently.
+
+    Performance: Reading data from a compressed file on-the-fly can be slow and resource-intensive, as the data must be decompressed as it's read. Decompressing the file beforehand can improve performance, as the data is readily available in memory.
+
+    Data Consistency: Decompressing datasets ensures data consistency. Some compressed formats may not fully support random access, which means that seeking to specific parts of the data might be problematic
 
 ---
 
@@ -85,6 +100,20 @@ Ensure a `requirements.txt` file is present in your `producer` folder and then i
 ```
 kubectl exec -it python -n python -- pip install -r /producer/requirements.txt
 ```
+
+_command explanation_ : Here's a step-by-step explanation of what this command does:
+
+    kubectl exec is used to execute a command inside a container.
+
+    The -it flags make the command interactive and allocate a terminal for it.
+
+    python is the name of the container (pod) in which you want to run the command.
+
+    -n python specifies the namespace where the container is located (in this case, "python").
+
+    -- separates the kubectl exec flags from the actual command to be executed.
+
+    pip install -r /producer/requirements.txt is the command that is run inside the "python" container. It tells the container to use pip to install Python packages listed in the "requirements.txt" file located in the "/producer" directory.
 
 ### **Step 3**: Execute the Python Script
 
