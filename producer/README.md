@@ -10,11 +10,11 @@ kubectl run producer -n python -i --rm --tty --image hansaskov/producer -- bash
 ```
 
 ## **Step 2**: Start python program
-
-The python program will download the dataset and begin sending the data to kafka in real time
+When the interactive container has been setup you can start the python program as follows.
 
 ```bash
 python  main.py
 ```
 
+ The program will download the dataset and begin sending the data to kafka in real time
 
