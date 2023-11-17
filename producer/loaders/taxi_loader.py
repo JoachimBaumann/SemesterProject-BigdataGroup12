@@ -5,6 +5,7 @@ import sqlite3
 from dateutil.parser import parse as date_parse
 from models.taxi_data import TaxiData
 from loaders.interface import DataLoader
+from utils.minio import download_objects
 
 class TaxiDataLoader(DataLoader[TaxiData]):
 
@@ -15,6 +16,11 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         self.batch_size = batch_size
         self.base_path = base_path 
         self.filepath = self._construct_filepath()
+        
+        if not os.path.exists(self.filepath):
+            print(f"Downloading Datasets...")
+            download_objects()  # Assuming this method is defined to handle the downloading
+
 
     def _construct_filepath(self) -> str:
         month = self.date_from.month

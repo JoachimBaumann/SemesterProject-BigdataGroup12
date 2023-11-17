@@ -7,6 +7,7 @@ from typing import Iterator, List, Optional
 from dateutil.parser import parse as date_parse
 from models.bus_data import BusData
 from loaders.interface import DataLoader
+from utils.minio import download_objects
 
 
 class BusDataLoader(DataLoader[BusData]):
@@ -19,6 +20,13 @@ class BusDataLoader(DataLoader[BusData]):
         self.start = start
         self.end = end
         self.batch_size = batch_size
+        
+        for filename in self.FILENAMES:
+            local_file_path = os.path.join(self.BASE_PATH, filename)
+
+            if not os.path.exists(local_file_path):
+                print(f"Downloading {filename}...")
+                download_objects()
 
     def set_range_from_datetime(self, date_start: datetime, date_end: datetime):
         best_start_tuple = 0, float('inf')
