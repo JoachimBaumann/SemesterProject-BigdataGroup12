@@ -9,7 +9,7 @@ Small guide to start producer that sends data to kafka
 ### **Step 1**: Start interactive container
 
 The following command will create a temporary pod within the python namespace using the image `hansaskov/producer`. And give you a command line to interface with
-```
+``` bash
 kubectl run producer -n python -i --rm --tty --image hansaskov/producer -- bash 
 ```
 
@@ -17,8 +17,8 @@ kubectl run producer -n python -i --rm --tty --image hansaskov/producer -- bash
 
 The python program will download the dataset and begin sending the data to kafka in real time
 
-    ``` bash
-    python  main.py
-    ```
+```bash
+python  main.py
+```
 
 
