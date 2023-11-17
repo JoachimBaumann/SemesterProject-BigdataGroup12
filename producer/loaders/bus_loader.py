@@ -89,6 +89,9 @@ class BusDataLoader(DataLoader[BusData]):
         while batch := list(islice(iterable, self.batch_size)):
             yield batch
 
+    def get_avro_schema(self) -> str:
+        return BusData.avro_schema()
+
 
     def _from_row(self, row: List[str]) -> Optional[BusData]:
         '''Convert a list of strings into busdata object'''

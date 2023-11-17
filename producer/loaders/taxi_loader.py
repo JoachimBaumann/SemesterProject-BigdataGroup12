@@ -62,6 +62,9 @@ class TaxiDataLoader(DataLoader[TaxiData]):
     def get_batches(self) -> Iterator[List[TaxiData]]:
         yield from self._parsed_batch()
 
+    def get_avro_schema(self) -> str:
+        return TaxiData.avro_schema()
+
     def _from_raw(self, row) -> Optional[TaxiData]:
         try:
             return TaxiData(

@@ -66,6 +66,9 @@ class MockedBusDataLoader(DataLoader[BusData]):
 
         while datetime.now() - start_time < self.duration:
             yield batch
+    
+    def get_avro_schema(self) -> str:
+        return BusData.avro_schema()
 
 
     def _from_row(self, row: List[str]) -> Optional[BusData]:

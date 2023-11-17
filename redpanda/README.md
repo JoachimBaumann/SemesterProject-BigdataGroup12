@@ -85,7 +85,7 @@ spec:
 
 To apply this configuration:
 
-```
+``` bash
 kubectl apply -f redpanda-cluster.yaml --namespace redpanda
 ```
 
@@ -93,7 +93,7 @@ kubectl apply -f redpanda-cluster.yaml --namespace redpanda
 
 Ensure that each Redpanda broker is scheduled on only one Kubernetes node with the following command:
 
-```
+``` bash
 kubectl get pod --namespace redpanda  \
   -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name -l \
   app.kubernetes.io/component=redpanda-statefulset

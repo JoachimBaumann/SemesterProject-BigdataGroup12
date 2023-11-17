@@ -1,17 +1,17 @@
 from datetime import datetime
-from typing import Protocol
+from dataclasses_avroschema import AvroModel
 
-class Data(Protocol):
+class Data(AvroModel):
     def to_json(self) -> str:
         """Convert the object to its JSON representation."""
-        pass
+        raise NotImplementedError
 
     @property
     def unique_identifier(self) -> str:
         """Return a unique identifier for the object."""
-        pass
+        raise NotImplementedError
 
     @property
     def timestamp(self) -> datetime:
         """Return the timestamp of the data."""
-        pass
+        raise NotImplementedError

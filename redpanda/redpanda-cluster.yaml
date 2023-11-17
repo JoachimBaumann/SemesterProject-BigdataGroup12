@@ -8,8 +8,6 @@ spec:
     resources:
       cpu:
         cores: 500m
-    connectors:
-      enabled: true
     tls:
       enabled: false
   

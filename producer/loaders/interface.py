@@ -7,3 +7,6 @@ class DataLoader(Generic[T]):
 
     def get_batches(self) -> Iterator[List[T]]:
         raise NotImplementedError
+    
+    def get_avro_schema(self) -> str:
+        raise NotImplementedError
