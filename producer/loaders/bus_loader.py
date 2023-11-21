@@ -21,12 +21,12 @@ class BusDataLoader(DataLoader[BusData]):
         self.end = end
         self.batch_size = batch_size
         
-        for filename in self.FILENAMES:
-            local_file_path = os.path.join(self.BASE_PATH, filename)
-
-            if not os.path.exists(local_file_path):
-                print(f"Downloading {filename}...")
-                download_objects()
+        
+        file_path = self._construct_filepath()
+  
+        if not os.path.exists(file_path):
+            print(f"Downloading {file_path}...")
+            download_objects(prefix=file_path)
 
     def set_range_from_datetime(self, date_start: datetime, date_end: datetime):
         best_start_tuple = 0, float('inf')

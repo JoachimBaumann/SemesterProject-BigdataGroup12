@@ -20,6 +20,12 @@ class MockedBusDataLoader(DataLoader[BusData]):
         self.end = batch_size
         self.duration = duration
         self.batch_size = batch_size
+        
+        file_path = self._construct_filepath()
+  
+        if not os.path.exists(file_path):
+            print(f"Downloading {file_path}...")
+            download_objects(prefix=file_path)
 
 
     def _construct_filepath(self) -> str:

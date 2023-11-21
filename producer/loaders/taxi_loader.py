@@ -15,11 +15,12 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         self.date_to = end_date
         self.batch_size = batch_size
         self.base_path = base_path 
-        self.filepath = self._construct_filepath()
         
-        if not os.path.exists(self.filepath):
-            print(f"Downloading Datasets...")
-            download_objects()  # Assuming this method is defined to handle the downloading
+        file_path = self._construct_filepath()
+  
+        if not os.path.exists(file_path):
+            print(f"Downloading {file_path}...")
+            download_objects(prefix=file_path)
 
 
     def _construct_filepath(self) -> str:
