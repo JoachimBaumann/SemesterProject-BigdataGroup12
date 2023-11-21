@@ -24,7 +24,7 @@ class TaxiData(Data):
     tolls_amount: float
     improvement_surcharge: float
     total_amount: float
-    congestion_surcharge: float
+    congestion_surcharge: str
 
     @property
     def unique_identifier(self) -> str:

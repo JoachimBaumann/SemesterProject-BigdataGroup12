@@ -15,12 +15,11 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         self.date_to = end_date
         self.batch_size = batch_size
         self.base_path = base_path 
-        
-        file_path = self._construct_filepath()
+        self.file_path = self._construct_filepath()
   
-        if not os.path.exists(file_path):
-            print(f"Downloading {file_path}...")
-            download_objects(prefix=file_path)
+        if not os.path.exists(self.file_path):
+            print(f"Downloading {self.file_path}...")
+            download_objects(prefix=self.file_path)
 
 
     def _construct_filepath(self) -> str:
@@ -30,7 +29,7 @@ class TaxiDataLoader(DataLoader[TaxiData]):
 
     def _connect_to_database(self) -> Optional[sqlite3.Connection]:
         try:
-            return sqlite3.connect(self.filepath)
+            return sqlite3.connect(self.file_path)
         except sqlite3.Error as e:
             print(f"Error when connecting to the database: {e}")
             return None
@@ -70,7 +69,7 @@ class TaxiDataLoader(DataLoader[TaxiData]):
         yield from self._parsed_batch()
 
     def get_avro_schema(self) -> str:
-        return TaxiData.avro_schema()
+        return TaxiData.avro_schema_to_python()
 
     def _from_raw(self, row) -> Optional[TaxiData]:
         try:
@@ -92,7 +91,7 @@ class TaxiDataLoader(DataLoader[TaxiData]):
                 tolls_amount=float(row[14]),
                 improvement_surcharge=float(row[15]),
                 total_amount=float(row[16]),
-                congestion_surcharge=row[17]
+                congestion_surcharge=str(row[17])
             )
         except (ValueError, IndexError):
             return None

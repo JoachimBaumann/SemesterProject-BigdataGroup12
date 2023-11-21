@@ -1,29 +1,44 @@
 from datetime import timezone
 import time
-from typing import List
+from typing import List, Literal, Union
 from loaders.interface import DataLoader
 from models.interfaces import Data
 from utils.window import sliding_window
+import requests
+import json
 
 class DataSender:
 
-    def __init__(self, loader: DataLoader[Data], producer, topic: str) -> None:
+    def __init__(self, loader: DataLoader[Data], producer, topic: str ) -> None:
         self.loader = loader
         self.producer = producer
         self.topic = topic
+        
+        self.upload_schema()
 
     def _send(self, data: Data):
         """Send a single entry to kafka"""
         utc_milliseconds_time = int(data.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000)
-        self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json(), timestamp=utc_milliseconds_time)
+        self.producer.produce(self.topic, key=data.unique_identifier, value=data.serialize(), timestamp=utc_milliseconds_time)
         self.producer.flush()
 
     def _send_batch(self, batch: List[Data]):
         """Send a batch of data entries to kafka"""
         for data in batch:
             utc_milliseconds_time = int(data.timestamp.replace(tzinfo=timezone.utc).timestamp() * 1000)
-            self.producer.produce(self.topic, key=data.unique_identifier, value=data.to_json(), timestamp=utc_milliseconds_time)
+            self.producer.produce(self.topic, key=data.unique_identifier, value=data.serialize(), timestamp=utc_milliseconds_time)
         self.producer.flush()
+
+    def upload_schema(self):
+        BASE_URI = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
+
+        res = requests.post(
+            url=f'{BASE_URI}/subjects/{self.topic}/versions',
+            data=json.dumps({
+            'schema': json.dumps(self.loader.get_avro_schema())
+            }),
+            headers={'Content-Type': 'application/vnd.schemaregistry.v1+json'}).json()
+        
 
     def send_all_data(self):
         """Send data from the loader to Kafka."""

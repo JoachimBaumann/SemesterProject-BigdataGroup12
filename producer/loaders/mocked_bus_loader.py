@@ -74,7 +74,7 @@ class MockedBusDataLoader(DataLoader[BusData]):
             yield batch
     
     def get_avro_schema(self) -> str:
-        return BusData.avro_schema()
+        return BusData.avro_schema_to_python()
 
 
     def _from_row(self, row: List[str]) -> Optional[BusData]:
