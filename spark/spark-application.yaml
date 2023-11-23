@@ -1,0 +1,33 @@
+apiVersion: spark.stackable.tech/v1alpha1
+kind: SparkApplication
+metadata:
+    name: pyspark-pi
+spec:
+    version: '1.0'
+    sparkImage: docker.stackable.tech/stackable/pyspark-k8s:3.3.0-stackable23.7.0
+    mode: cluster
+    mainApplicationFile: local:///stackable/spark/examples/src/main/python/pi.py
+    # The location for the Spark event logs using HDFS
+    sparkConf:
+        'spark.eventLog.enabled': 'true'
+        'spark.eventLog.dir': 'hdfs://simple-hdfs-namenode-default-1.default:8020/user/spark/eventlogs'
+        'spark.hadoop.fs.defaultFS': 'hdfs://simple-hdfs-namenode-default-1.default:8020'
+        'spark.hadoop.dfs.client.use.datanode.hostname': 'true'
+        # Add any other HDFS related configurations here
+        'spark.hadoop.some.hadoop.config': 'config-value'
+    driver:
+        resources:
+            cpu:
+                min: '1'
+                max: '1'
+            memory:
+                limit: '1Mi'
+    executor:
+        instances: 3
+        resources:
+            cpu:
+                min: '1'
+                max: '1'
+            memory:
+                limit: '1Mi'
+    # If you need to specify Hadoop configurations, you can add them here
