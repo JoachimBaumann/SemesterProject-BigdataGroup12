@@ -26,9 +26,11 @@ $body = @{
         "format.class" = "io.confluent.connect.hdfs.json.JsonFormat"
         "key.converter.schemas.enable" = "false"
         "key.converter" = "org.apache.kafka.connect.storage.StringConverter"
-        "key.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "key.converter.schema.registry.url" = " http://kafka-schema-registry:8081
+"
         "value.converter.schemas.enable" = "false"
-        "value.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "value.converter.schema.registry.url" = " redpanda-0.redpanda.redpanda.svc.cluster.local:8081
+"
         "value.converter" = "org.apache.kafka.connect.json.JsonConverter"
     }
 } | ConvertTo-Json
@@ -50,10 +52,10 @@ $body = @{
         "flush.size" = "3"
         "format.class" = "io.confluent.connect.hdfs.avro.AvroFormat"
         "key.converter.schemas.enable" = "true"
-        "key.converter" = "io.confluent.connect.avro.AvroConverter"
-        "key.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "key.converter" = "org.apache.kafka.connect.storage.StringConverter"
+        "key.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter.schemas.enable" = "true"
-        "value.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "value.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter" = "io.confluent.connect.avro.AvroConverter"
     }
 } | ConvertTo-Json
@@ -74,8 +76,8 @@ $body = @{
         "flush.size" = "3"
         "format.class" = "io.confluent.connect.hdfs.avro.AvroFormat"
         "key.converter.schemas.enable" = "true"
-        "key.converter" = "io.confluent.connect.avro.AvroConverter"
-        "key.converter.schema.registry.url" = "http://kafka-schema-registry:8081"
+        "key.converter" = "org.apache.kafka.connect.storage.StringConverter"
+        "key.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter.schemas.enable" = "true"
         "value.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter" = "io.confluent.connect.avro.AvroConverter"
