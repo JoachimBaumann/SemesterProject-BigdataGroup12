@@ -2,19 +2,19 @@
 
 Here is how to apply the kafka connect configuration defined in the kafka-connect.yaml file
 
-```
+``` bash
 kubectl apply -f kafka-connect.yaml -n kafka
 ```
 
 Now we need to post the configuration using curl in a terminal with port-forwarding enabled, so:
 
-```
+``` bash
 kubectl port-forward svc/kafka-connect 8083:8083 -n kafka
 ```
 
 Run the command below to post the configuration:
 
-```
+``` powershell
 $body = @{
     name = "hdfs-sink"
     config = @{
@@ -39,7 +39,7 @@ Invoke-WebRequest -Uri 'http://127.0.0.1:8083/connectors' -Method Post -ContentT
 
 To run a based version that takes avro instead of json use the following script:
 
-```
+``` powershell
 $body = @{
     name = "hdfs-sink-taxi"
     config = @{
@@ -51,9 +51,9 @@ $body = @{
         "format.class" = "io.confluent.connect.hdfs.avro.AvroFormat"
         "key.converter.schemas.enable" = "true"
         "key.converter" = "io.confluent.connect.avro.AvroConverter"
-        "key.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "key.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter.schemas.enable" = "true"
-        "value.converter.schema.registry.url" = "http://kafka-schema-registry.kafka:8081"
+        "value.converter.schema.registry.url" = "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
         "value.converter" = "io.confluent.connect.avro.AvroConverter"
     }
 } | ConvertTo-Json
@@ -63,7 +63,7 @@ Invoke-WebRequest -Uri 'http://127.0.0.1:8083/connectors' -Method Post -ContentT
 
 To create the bus data connector:
 
-```
+``` powershell
 $body = @{
     name = "hdfs-sink-bus"
     config = @{
