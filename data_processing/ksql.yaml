@@ -32,7 +32,7 @@ spec:
             - name: KSQL_BOOTSTRAP_SERVERS
               value: "redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093"
             - name: KSQL_KSQL_SCHEMA_REGISTRY_URL
-              value: "redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
+              value: "http://redpanda-0.redpanda.redpanda.svc.cluster.local:8081"
             - name: KSQL_LISTENERS
               value: "http://0.0.0.0:8088"
             - name: KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE
