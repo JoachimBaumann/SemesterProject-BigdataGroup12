@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: kafka-ksqldb-server
-          image: confluentinc/cp-ksqldb-server:7.3.1
+          image: confluentinc/cp-ksqldb-server:7.5.0
           env:
             - name: KSQL_BOOTSTRAP_SERVERS
               value: "redpanda-0.redpanda.redpanda.svc.cluster.local:9093,redpanda-1.redpanda.redpanda.svc.cluster.local:9093,redpanda-2.redpanda.redpanda.svc.cluster.local:9093"
@@ -58,6 +58,6 @@ spec:
     spec:
       containers:
         - name: kafka-ksqldb-cli
-          image: confluentinc/cp-ksqldb-cli:7.3.1
+          image: confluentinc/cp-ksqldb-cli:7.5.0
           tty: true
           stdin: true
