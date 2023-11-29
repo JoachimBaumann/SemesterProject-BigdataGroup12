@@ -41,6 +41,7 @@ spec:
               value: "true"
             - name: KSQL_KSQL_SERVICE_ID
               value: "kafka-ksqldb-group-id-01"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,3 +62,10 @@ spec:
           image: confluentinc/cp-ksqldb-cli:7.5.0
           tty: true
           stdin: true
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
