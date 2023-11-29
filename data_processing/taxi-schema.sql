@@ -3,6 +3,8 @@ CREATE STREAM taxi_data WITH (
     VALUE_FORMAT='AVRO'
 );
 
-CREATE STREAM taxi_json 
-  WITH (KAFKA_TOPIC='taxi-json', VALUE_FORMAT='JSON') AS 
-  SELECT * FROM taxi_data;
+CREATE STREAM taxi_json
+  WITH (KAFKA_TOPIC='taxi-json', VALUE_FORMAT='JSON', KEY_FORMAT='JSON') AS
+  SELECT *
+  FROM taxi_data
+  PARTITION BY pulocationid;
