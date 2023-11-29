@@ -13,8 +13,9 @@ spec:
             user: hive
             password: hive
             dbType: postgres
+        s3:
+            reference: minio
         hdfs:
-            nameNodeUri: 'hdfs://simple-hdfs-namenode-default-1.default:8020'
             configMap: simple-hdfs
     metastore:
         roleGroups:

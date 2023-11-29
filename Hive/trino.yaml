@@ -2,7 +2,7 @@
 apiVersion: trino.stackable.tech/v1alpha1
 kind: TrinoCluster
 metadata:
-    name: simple-trino
+    name: trino
 spec:
     image:
         productVersion: '414'
@@ -10,7 +10,7 @@ spec:
     clusterConfig:
         catalogLabelSelector:
             matchLabels:
-                trino: simple-trino
+                trino: trino
     coordinators:
         config:
             resources:
@@ -37,20 +37,17 @@ spec:
 apiVersion: trino.stackable.tech/v1alpha1
 kind: TrinoCatalog
 metadata:
-    # The name of the catalog as it will appear in Trino
-    name: hive-catalog
-    # TrinoCluster can use these labels to select which catalogs to include
+    name: hive
     labels:
-        trino: simple-trino
+        trino: trino
 spec:
     connector:
-        # Specify hive here when defining a hive catalog
         hive:
             metastore:
                 configMap: simple-hive
+            s3:
+                reference: minio
             hdfs:
                 configMap: simple-hdfs
-
-    # We can use configOverrides to add arbitrary properties to the Trino catalog configuration
     configOverrides:
-        hive.metastore.username: trino
+        hive.s3.endpoint: http://minio:9000
