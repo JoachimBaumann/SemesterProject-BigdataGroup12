@@ -1,34 +1,20 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-    name: frontend-service
-spec:
-    type: NodePort
-    selector:
-        app: swegroup12
-    ports:
-        - port: 3000
-          targetPort: 3000
-          nodePort: 30000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: frontend-deployment
+    name: swegroup12-deployment
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: frontend
+            app: swegroup12
     template:
         metadata:
             labels:
-                app: frontend
+                app: swegroup12
         spec:
             containers:
-                - name: frontend
-                  image: hansaskov/frontend:latest
+                - name: swegroup12
+                  image: hansaskov/swegroup12:latest
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 3000
@@ -39,5 +25,3 @@ spec:
                       requests:
                           cpu: '250m'
                           memory: '512Mi'
----
-

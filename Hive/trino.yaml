@@ -1,0 +1,56 @@
+---
+apiVersion: trino.stackable.tech/v1alpha1
+kind: TrinoCluster
+metadata:
+    name: simple-trino
+spec:
+    image:
+        productVersion: '414'
+        stackableVersion: '23.7.0'
+    clusterConfig:
+        catalogLabelSelector:
+            matchLabels:
+                trino: simple-trino
+    coordinators:
+        config:
+            resources:
+                cpu:
+                    min: 200m
+                    max: 1000m
+                memory:
+                    limit: 1Gi
+        roleGroups:
+            default:
+                replicas: 1
+    workers:
+        config:
+            resources:
+                cpu:
+                    min: 200m
+                    max: 1000m
+                memory:
+                    limit: 1Gi
+        roleGroups:
+            default:
+                replicas: 1
+---
+apiVersion: trino.stackable.tech/v1alpha1
+kind: TrinoCatalog
+metadata:
+    # The name of the catalog as it will appear in Trino
+    name: hive-catalog
+    # TrinoCluster can use these labels to select which catalogs to include
+    labels:
+        trino: simple-trino
+spec:
+    connector:
+        # Specify hive here when defining a hive catalog
+        hive:
+            metastore:
+                configMap: simple-hive
+            hdfs:
+                configMap: simple-hdfs
+
+    # We can use configOverrides to add arbitrary properties to the Trino catalog configuration
+    configOverrides:
+        hive.metastore.username: trino
