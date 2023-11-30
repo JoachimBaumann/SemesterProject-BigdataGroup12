@@ -40,7 +40,7 @@ helm install cert-manager jetstack/cert-manager --set installCRDs=true --namespa
 Now, install the Redpanda Operator custom resource definitions (CRDs):
 
 ```
-kubectl kustomize https://github.com/redpanda-data/redpanda//src/go/k8s/config/crd | kubectl apply -f -
+kubectl kustomize https://github.com/redpanda-data/redpanda-operator//src/go/k8s/config/crd | kubectl apply -f -
 ```
 
 ### **Step 4: Deploying the Redpanda Operator**
@@ -86,7 +86,7 @@ spec:
 To apply this configuration:
 
 ``` bash
-kubectl apply -f redpanda-cluster.yaml --namespace redpanda
+kubectl apply -f redpanda-cluster.yaml -n redpanda
 ```
 
 ### **Step 7: Verifying Redpanda Broker Scheduling**

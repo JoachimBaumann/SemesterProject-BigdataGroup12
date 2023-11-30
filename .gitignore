@@ -1,5 +1,6 @@
 datasets/bus_*
 datasets/taxi_*
+datasets/datasets/*
 
 
 *.py[cod]

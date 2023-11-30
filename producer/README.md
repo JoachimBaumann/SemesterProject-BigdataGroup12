@@ -7,13 +7,13 @@ Listed below are all the steps needed to start a interactive container to send d
 The following command will create a temporary pod within the python namespace using the image `hansaskov/producer`. And give you a command line to interface with
 
 ```bash
-kubectl run producer -n python -i --rm --tty --image hansaskov/producer -- bash
+kubectl run producer -n producer -i --rm --tty --image hansaskov/producer -- bash 
 ```
 
 If the producer already exists run the following:
 
 ```bash
-kubectl -n python exec -it producer -- bash
+kubectl -n producer exec -it producer -- bash
 ```
 
 ## **Step 2**: Start python program

@@ -8,6 +8,9 @@ spec:
     resources:
       cpu:
         cores: 500m
+      memory:
+        enable_memory_locking: false
+        container:
+          max: 2Gi
     tls:
       enabled: false
-  

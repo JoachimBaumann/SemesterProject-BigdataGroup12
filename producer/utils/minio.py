@@ -3,9 +3,9 @@ from minio.error import S3Error
 import os
 
 client = Minio(
-    "minio.python.svc.cluster.local:9000",
-    access_key="CWhtA2o3tAEiwlGvaKB1",
-    secret_key="eV4Elf4mrRJYy8TwjIPzDtYZyUkE0L3AIxJYGOxK",
+    "minio.minio-operator.svc.cluster.local",
+    access_key="FQHGGA3ZGOYHSUT4WIDR",
+    secret_key="eEcVsonwbmpA3W2XZzO90KwFfWsGUih1CErmjUbA",
     secure=False  # Set to True if using HTTPS
 )
 
