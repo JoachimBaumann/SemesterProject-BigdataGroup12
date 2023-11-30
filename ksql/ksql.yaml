@@ -41,6 +41,13 @@ spec:
               value: "true"
             - name: KSQL_KSQL_SERVICE_ID
               value: "kafka-ksqldb-group-id-01"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "2Gi"
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
 
 ---
 apiVersion: apps/v1
@@ -64,8 +71,8 @@ spec:
           stdin: true
           resources:
             limits:
-              cpu: "300m"
-              memory: "512Mi"
-            requests:
               cpu: "200m"
               memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
