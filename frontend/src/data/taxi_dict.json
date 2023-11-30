@@ -21,7 +21,7 @@
         "Borough": "Manhattan",
         "Zone": "Alphabet City",
         "service_zone": "Yellow Zone",
-        "geo_id": "NaN"
+        "geo_id": "MN28"
     },
     "5": {
         "Borough": "Staten Island",
@@ -519,13 +519,13 @@
         "Borough": "Manhattan",
         "Zone": "Financial District North",
         "service_zone": "Yellow Zone",
-        "geo_id": "NaN"
+        "geo_id": "MN25"
     },
     "88": {
         "Borough": "Manhattan",
         "Zone": "Financial District South",
         "service_zone": "Yellow Zone",
-        "geo_id": "NaN"
+        "geo_id": "MN25"
     },
     "89": {
         "Borough": "Brooklyn",
@@ -597,7 +597,7 @@
         "Borough": "Manhattan",
         "Zone": "Garment District",
         "service_zone": "Yellow Zone",
-        "geo_id": "NaN"
+        "geo_id": "MN17"
     },
     "101": {
         "Borough": "Queens",
@@ -663,7 +663,7 @@
         "Borough": "Brooklyn",
         "Zone": "Green-Wood Cemetery",
         "service_zone": "Boro Zone",
-        "geo_id": "NaN"
+        "geo_id": "BK37"
     },
     "112": {
         "Borough": "Brooklyn",
@@ -675,13 +675,13 @@
         "Borough": "Manhattan",
         "Zone": "Greenwich Village North",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN23"
     },
     "114": {
         "Borough": "Manhattan",
         "Zone": "Greenwich Village South",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN23"
     },
     "115": {
         "Borough": "Staten Island",
@@ -789,13 +789,13 @@
         "Borough": "Queens",
         "Zone": "JFK Airport",
         "service_zone": "Airports",
-        "geo_id": NaN
+        "geo_id": "QN03"
     },
     "133": {
         "Borough": "Brooklyn",
         "Zone": "Kensington",
         "service_zone": "Boro Zone",
-        "geo_id": NaN
+        "geo_id": "BK42"
     },
     "134": {
         "Borough": "Queens",
@@ -825,7 +825,7 @@
         "Borough": "Queens",
         "Zone": "LaGuardia Airport",
         "service_zone": "Airports",
-        "geo_id": NaN
+        "geo_id": "QN27"
     },
     "139": {
         "Borough": "Queens",
@@ -903,7 +903,7 @@
         "Borough": "Manhattan",
         "Zone": "Manhattan Valley",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN12"
     },
     "152": {
         "Borough": "Manhattan",
@@ -1113,7 +1113,7 @@
         "Borough": "Manhattan",
         "Zone": "Penn Station/Madison Sq West",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN17"
     },
     "187": {
         "Borough": "Staten Island",
@@ -1161,7 +1161,7 @@
         "Borough": "Manhattan",
         "Zone": "Randalls Island",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "QN72"
     },
     "195": {
         "Borough": "Brooklyn",
@@ -1191,7 +1191,7 @@
         "Borough": "Bronx",
         "Zone": "Rikers Island",
         "service_zone": "Boro Zone",
-        "geo_id": NaN
+        "geo_id": "NaN"
     },
     "200": {
         "Borough": "Bronx",
@@ -1251,7 +1251,7 @@
         "Borough": "Manhattan",
         "Zone": "Seaport",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN25"
     },
     "210": {
         "Borough": "Brooklyn",
@@ -1377,7 +1377,7 @@
         "Borough": "Manhattan",
         "Zone": "Times Sq/Theatre District",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN17"
     },
     "231": {
         "Borough": "Manhattan",
@@ -1389,7 +1389,7 @@
         "Borough": "Manhattan",
         "Zone": "Two Bridges/Seward Park",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN28"
     },
     "233": {
         "Borough": "Manhattan",
@@ -1419,7 +1419,7 @@
         "Borough": "Manhattan",
         "Zone": "Upper East Side South",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN40"
     },
     "238": {
         "Borough": "Manhattan",
@@ -1515,7 +1515,7 @@
         "Borough": "Queens",
         "Zone": "Willets Point",
         "service_zone": "Boro Zone",
-        "geo_id": NaN
+        "geo_id": "QN26"
     },
     "254": {
         "Borough": "Bronx",
@@ -1563,7 +1563,7 @@
         "Borough": "Manhattan",
         "Zone": "World Trade Center",
         "service_zone": "Yellow Zone",
-        "geo_id": NaN
+        "geo_id": "MN25"
     },
     "262": {
         "Borough": "Manhattan",
