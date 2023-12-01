@@ -2,68 +2,54 @@ import { Elysia } from "elysia";
 import { html } from "@elysiajs/html";
 import { BaseHtml } from "./components/base";
 import Stream from "@elysiajs/stream";
-import { Kafka } from 'kafkajs';
 import { scaleQuantize } from 'd3-scale';
 import { schemeBlues } from 'd3-scale-chromatic';
 import { GeoPermissibleObjects, geoPath, geoAlbers } from 'd3-geo';
 import * as topojson from 'topojson-client';
 import ny from './data/ny.json';
+//import { taxiAverage } from "./kafka";
 
 const counties = topojson.feature(ny, ny.objects.collection);
 const width = 1000, height = 1000;
 const albersProjection = geoAlbers()
-    .rotate([74, 0])
-    .center([0, 41.7128])
-    .parallels([29.5, 45.5])
-    .translate([width / 5, height / 1.5])
-    .scale(10000);
+  .rotate([74, 0])
+  .center([0, 41.7128])
+  .parallels([29.5, 45.5])
+  .translate([width / 5, height / 1.5])
+  .scale(10000);
 const path = geoPath(albersProjection);
 const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
-const kafka = new Kafka({
-  clientId: 'my-app',
-  brokers: ['redpanda-0.redpanda.redpanda.svc.cluster.local:9093', 'redpanda-1.redpanda.redpanda.svc.cluster.local:9093', 'redpanda-2.redpanda.redpanda.svc.cluster.local:9093'],
-})
-const consumer = kafka.consumer({ groupId: 'test-group' });
-
-await consumer.connect();
-await consumer.subscribe({ topic: 'taxi-average' });
-
-interface TripStatistics {
-  AVG_DISTANCE: number;
-  TOTAL_TRIPS: number;
-  AVG_TIP: number;
-}
 
 const app = new Elysia()
   .use(html())
-  .get('/stats_stream', async () => {
+  /*.get('/stats_streamS', async () => {
     const stream = new Stream();
-    await consumer.run({
-      eachMessage: async ({ message }) => {
-        if (message.value) {
-          try {
-            const { AVG_DISTANCE, AVG_TIP, TOTAL_TRIPS }: TripStatistics = JSON.parse(message.value.toString());
-            stream.event = "distance-traveled";
-            stream.send(<>{AVG_DISTANCE.toFixed(2)} km</>);
-            stream.event = "trips-completed-value";
-            stream.send(<>{TOTAL_TRIPS.toFixed(0)}</>);
-            stream.event = "average-tip-value";
-            stream.send(<>{AVG_TIP.toFixed(2)} $</>);
-          } catch (e) {
-            console.error("Error parsing JSON:", e);
-          }
-        }
-      },
-    });
+
+    const {AVG_DISTANCE, TOTAL_TRIPS, AVG_TIP} = taxiAverage.current!
+
+    const interval = setInterval(() => {
+      stream.event = "distance-traveled";
+      stream.send(<>{AVG_DISTANCE.toFixed(2)} km</>);
+      stream.event = "trips-completed-value";
+      stream.send(<>{TOTAL_TRIPS.toFixed(0)}</>);
+      stream.event = "average-tip-value";
+      stream.send(<>{AVG_TIP.toFixed(2)} $</>);
+    }, 5000)
+
+    setTimeout(() => {
+      clearInterval(interval)
+      stream.close()
+    }, 30000)
+
     return stream;
-  })
+  })*/
   .get("/stream_map", () => {
     const stream = new Stream();
-    const interval = setInterval(() => { 
-      const svg = 
+    const interval = setInterval(() => {
+      const svg =
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: "100%", height: "auto", backgroundColor: "transparent" }}>
           <g class="data">
-          {counties.features.map((county: GeoPermissibleObjects) => {
+            {counties.features.map((county: GeoPermissibleObjects) => {
               const color_value = getRandomIntInclusive(1, 10)
               let color = colorScale(color_value)
               const geoId: string = county.properties.geo_id
@@ -71,9 +57,9 @@ const app = new Elysia()
                 color = "none"
               }
               return (
-              <g>
-                <path id={geoId} fill={color} d={path(county)} />
-              </g>)
+                <g>
+                  <path id={geoId} fill={color} d={path(county)} />
+                </g>)
             })}
           </g>
         </svg>;
@@ -87,7 +73,7 @@ const app = new Elysia()
 
     return stream;
   })
-  .get("/", () => 
+  .get("/", () =>
     <BaseHtml>
       <div class="flex flex-col mt-4 justify-center content-center">
 
@@ -125,16 +111,16 @@ const app = new Elysia()
           </div>
         </div>
 
-        
+
         <div class="flex flex-row justify-center content-center items-center" hx-ext="sse" sse-connect="/stream_map" sse-swap="message">
           <div class="loading loading-ring mt-48 w-1/3"></div>
         </div>
       </div>
-      
+
     </BaseHtml>
-    
+
   )
-  .listen(3001);
+  .listen(3000);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 
