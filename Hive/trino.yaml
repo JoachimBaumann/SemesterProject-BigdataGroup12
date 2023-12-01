@@ -16,7 +16,7 @@ spec:
             resources:
                 cpu:
                     min: 200m
-                    max: 1000m
+                    max: 200m
                 memory:
                     limit: 1Gi
         roleGroups:
@@ -27,7 +27,7 @@ spec:
             resources:
                 cpu:
                     min: 200m
-                    max: 1000m
+                    max: 200m
                 memory:
                     limit: 1Gi
         roleGroups:
@@ -44,10 +44,9 @@ spec:
     connector:
         hive:
             metastore:
-                configMap: simple-hive
+                configMap: hive
             s3:
                 reference: minio
-            hdfs:
-                configMap: simple-hdfs
     configOverrides:
-        hive.s3.endpoint: http://minio:9000
+        # If we don't set the endpoint then Trino will try to connect to AWS S3
+        hive.s3.endpoint: http://minio.minio-operator.svc.cluster.local:9000
