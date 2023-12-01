@@ -1,7 +1,5 @@
-CREATE STREAM taxi_transformed 
-   WITH (KAFKA_TOPIC='taxi-transformed', VALUE_FORMAT='JSON') AS
-SELECT 
-tip_amount as tip_amount, trip_distance as trip_distance, vendorid as vendorid,
+CREATE STREAM taxi_transformed_intermediate AS
+SELECT *,
 CASE
     WHEN pulocationid =  1 THEN 'NaN'
     WHEN pulocationid =  2 THEN 'QN61'
