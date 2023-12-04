@@ -7,7 +7,7 @@ import { schemeBlues } from 'd3-scale-chromatic';
 import { GeoPermissibleObjects, geoPath, geoAlbers } from 'd3-geo';
 import * as topojson from 'topojson-client';
 import ny from './data/ny.json';
-//import { taxiAverage } from "./kafka";
+import { taxiAverage, taxiPuLocation } from "./kafka";
 
 const counties = topojson.feature(ny, ny.objects.collection);
 const width = 1000, height = 1000;
@@ -22,10 +22,10 @@ const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
 
 const app = new Elysia()
   .use(html())
-  /*.get('/stats_streamS', async () => {
+  .get('/stats_stream', async () => {
     const stream = new Stream();
 
-    const {AVG_DISTANCE, TOTAL_TRIPS, AVG_TIP} = taxiAverage.current!
+    const { AVG_DISTANCE, TOTAL_TRIPS, AVG_TIP } = taxiAverage.current!
 
     const interval = setInterval(() => {
       stream.event = "distance-traveled";
@@ -42,24 +42,41 @@ const app = new Elysia()
     }, 30000)
 
     return stream;
-  })*/
+  })
   .get("/stream_map", () => {
     const stream = new Stream();
     const interval = setInterval(() => {
+      const min_count = taxiPuLocation.get_min();
+      const max_count = taxiPuLocation.get_max();
       const svg =
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: "100%", height: "auto", backgroundColor: "transparent" }}>
           <g class="data">
             {counties.features.map((county: GeoPermissibleObjects) => {
-              const color_value = getRandomIntInclusive(1, 10)
-              let color = colorScale(color_value)
               const geoId: string = county.properties.geo_id
+              let trip_stats = taxiPuLocation.map.get(geoId)
+              if (!trip_stats) {
+                trip_stats = {
+                  AVG_DISTANCE: 0,
+                  AVG_TIP: 0,
+                  TOTAL_TRIPS: 0
+                }
+              }
+
+
+
+              let color_value = (Math.log10(trip_stats.TOTAL_TRIPS) - Math.log10(min_count)) / (Math.log10(max_count) - Math.log10(min_count)) * 10;
+              let color = colorScale(Math.ceil(color_value))
+
               if (geoId == "BK93") {
                 color = "none"
               }
+
               return (
                 <g>
                   <path id={geoId} fill={color} d={path(county)} />
                 </g>)
+
+
             })}
           </g>
         </svg>;
