@@ -5,7 +5,7 @@ const kafka = new Kafka({
   brokers: ['redpanda-0.redpanda.redpanda.svc.cluster.local:9093', 'redpanda-1.redpanda.redpanda.svc.cluster.local:9093', 'redpanda-2.redpanda.redpanda.svc.cluster.local:9093'],
 })
 
-const consumer = kafka.consumer({ groupId: 'test-group-7' });
+const consumer = kafka.consumer({ groupId: 'test-group-8' });
 const topics = {
   taxi_pu_location: 'taxi-pu-location',
   taxi_average: 'taxi-average'
@@ -19,27 +19,46 @@ interface TripStatistics {
 }
 
 class TaxiPuLocation {
-  map: Record<string, TripStatistics> = {};
-  ingest({key, value}: {key: Buffer, value: Buffer}) {
+  map = new Map<string, TripStatistics>();
+  ingest({ key, value }: { key: Buffer, value: Buffer }) {
     try {
 
       const k = extractFirstQuotedString(key.toString());
       const v = JSON.parse(value.toString()) as TripStatistics;
 
       if (k && k != 'NaN') {
-        this.map[k] = v;
+        this.map.set(k, v);
       }
 
     } catch (parseErr) {
       console.error('Error parsing JSON:', parseErr);
     }
-    
+  }
+  get_min() {
+
+    const array = [...this.map.values()];
+    const min = array.reduce((sum, value) =>
+      sum = Math.min(sum, value.TOTAL_TRIPS) 
+      , Infinity);
+
+    return min;
+  }
+
+  get_max() {
+
+    const array = [...this.map.values()];
+    const max = array.reduce((sum, value) =>
+    sum = Math.max(sum, value.TOTAL_TRIPS) 
+    , 0);
+
+    return max;
+
   }
 }
 
 class TaxiAverage {
   current: TripStatistics | undefined = undefined
-  ingest({value}: {value: Buffer}) {
+  ingest({ value }: { value: Buffer }) {
     try {
       const v = JSON.parse(value.toString()) as TripStatistics;
       this.current = v
@@ -57,28 +76,28 @@ const run = async () => {
   // Assume consumer, topic, extractFirstQuotedString are defined and available
 
   await consumer.connect();
-  await consumer.subscribe({ topics: [topics.taxi_average, topics.taxi_pu_location]});
+  await consumer.subscribe({ topics: [topics.taxi_average, topics.taxi_pu_location] });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       if (message.value === null || message.key === null)
         return undefined;
-      
+
       switch (topic) {
         case topics.taxi_average:
-          taxiAverage.ingest({value: message.value})
+          taxiAverage.ingest({ value: message.value })
           break;
-      
+
         case topics.taxi_pu_location:
-          taxiPuLocation.ingest({key: message.key, value: message.value})
+          taxiPuLocation.ingest({ key: message.key, value: message.value })
           break;
 
         default:
           break;
       }
-    
+
     },
-  }); 
+  });
 };
 run().catch(async e => {
   console.error(e)
