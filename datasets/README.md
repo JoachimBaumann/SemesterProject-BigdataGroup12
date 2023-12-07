@@ -8,5 +8,5 @@ microk8s enable minio
 kubectl port-forward svc/microk8s-console -n minio-operator 9090:9090
 ```
 
-  Username: RIJB0M04LY0GZDY0WUK4 
-  Password: nWi8C8puZMLdQvG4XERUU0pabGFxEN1qA0hmWMq1
+  Username: BVM3WRSFPR9MUF7ELEFL 
+  Password: hJ36jmiI9Sgw1HdXQAK6xBD2k0msVqy7wkQMHmMF 
