@@ -4,8 +4,8 @@ import os
 
 client = Minio(
     "minio.minio-operator.svc.cluster.local",
-    access_key="RIJB0M04LY0GZDY0WUK4",
-    secret_key="nWi8C8puZMLdQvG4XERUU0pabGFxEN1qA0hmWMq1",
+    access_key="BVM3WRSFPR9MUF7ELEFL",
+    secret_key="hJ36jmiI9Sgw1HdXQAK6xBD2k0msVqy7wkQMHmMF",
     secure=False  # Set to True if using HTTPS
 )
 

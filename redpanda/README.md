@@ -7,7 +7,7 @@ Before you proceed, it's essential to ensure you have the necessary permissions 
 
 Execute the following command:
 
-```
+``` bash
 kubectl auth can-i create CustomResourceDefinition --all-namespaces
 ```
 
@@ -19,7 +19,7 @@ Cert-manager helps manage certificate authorities in your Kubernetes cluster. Us
 
 1. Add the Jetstack repository:
 
-```
+``` bash
 helm repo add jetstack https://charts.jetstack.io
 ```
 
