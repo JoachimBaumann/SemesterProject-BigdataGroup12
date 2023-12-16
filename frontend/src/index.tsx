@@ -28,6 +28,7 @@ const map_type = t.Union([
 
 type MapType = Static<typeof map_type>
 
+
 function calculate_color_value(value: TripStatistics, min: TripStatistics, max: TripStatistics, type: MapType) {
 
   switch (type) {
@@ -82,6 +83,24 @@ function createChoroplethSvg(colorScale: ScaleQuantize<string, never>, type: Map
 
 }
 
+function createChoroplethTab(type: MapType) {
+
+  const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
+
+  const mapTypes = ['count', 'tip', 'distance'] as const
+
+  return (<>
+    <div role="tablist" class="tabs tabs-boxed">
+      {mapTypes.map((v) => <button hx-get={`/tab/${v}`} aria-selected="false" role="tab" hx-trigger={(v === type ) ? "every 5s" : ""} aria-controls="tab-content" class={(v === type) ? "tab tab-active" : "tab"}>{v}</button>)}
+    </div>
+
+    <div id="tab-content" role="tabpanel">
+      {createChoroplethSvg(colorScale, type)}
+    </div>
+  </>)
+
+}
+
 const app = new Elysia()
   .use(html())
   .get('/stats_stream', async () => {
@@ -105,14 +124,13 @@ const app = new Elysia()
 
     return stream;
   })
-  .get("/map/:type", ({ params }) => {
-    const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
-    return createChoroplethSvg(colorScale, params.type)
+  .get("/tab/:type", ({ params }) => {
+
+    return createChoroplethTab(params.type)
   }, {
     params: t.Object({
       type: map_type
     })
-
   })
   .get("/stream_map", () => {
     const stream = new Stream();
@@ -184,8 +202,9 @@ const app = new Elysia()
           </div>
 
 
-          <div class="flex flex-row justify-center content-center items-center" hx-ext="sse" sse-connect="/stream_map" sse-swap="message">
-            {createChoroplethSvg(colorScale, 'count')}
+          <div id="tabs" hx-target="#tabs" hx-swap="innerHTML" class="shrink justify-center place-self-center">
+            {createChoroplethTab('count')}
+
           </div>
         </div>
 
