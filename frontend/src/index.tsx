@@ -1,4 +1,4 @@
-import { Elysia, t } from "elysia";
+import { Elysia, Static, t } from "elysia";
 import { html } from "@elysiajs/html";
 import { BaseHtml } from "./components/base";
 import Stream from "@elysiajs/stream";
@@ -19,24 +19,33 @@ const albersProjection = geoAlbers()
   .scale(10000);
 const path = geoPath(albersProjection);
 
-function calculate_color_value(value: TripStatistics, min: TripStatistics, max: TripStatistics, type: 'count' | 'tip' | 'distance' ){
+const map_type = t.Union([
+  t.Literal('count'),
+  t.Literal('tip'),
+  t.Literal('distance')
+])
+
+
+type MapType = Static<typeof map_type>
+
+function calculate_color_value(value: TripStatistics, min: TripStatistics, max: TripStatistics, type: MapType) {
 
   switch (type) {
     case 'count':
       return (Math.log10(value.TOTAL_TRIPS) - Math.log10(min.TOTAL_TRIPS)) / (Math.log10(max.TOTAL_TRIPS) - Math.log10(min.TOTAL_TRIPS)) * 10;
-  
+
     case 'distance':
-      return (Math.log10(value.AVG_DISTANCE) - Math.log10(min.AVG_DISTANCE)) / (Math.log10(max.AVG_DISTANCE) - Math.log10(min.AVG_DISTANCE)) * 10;
+      return Math.log10(value.AVG_DISTANCE) / Math.log10(max.AVG_DISTANCE) * 10;
 
     case 'tip':
-      return (Math.log10(value.AVG_TIP) - Math.log10(min.AVG_TIP)) / (Math.log10(max.AVG_TIP) - Math.log10(min.AVG_TIP)) * 10;
-    default: 
-    return 0;
+      return Math.log10(value.AVG_TIP) / Math.log10(max.AVG_TIP) * 10;
+    default:
+      return 0;
   }
 
 }
 
-function createChoroplethSvg(colorScale: ScaleQuantize<string, never>, type: 'count' | 'tip' | 'distance') {
+function createChoroplethSvg(colorScale: ScaleQuantize<string, never>, type: MapType) {
   const min = taxiPuLocation.get_min();
   const max = taxiPuLocation.get_max();
   const svg =
@@ -53,7 +62,7 @@ function createChoroplethSvg(colorScale: ScaleQuantize<string, never>, type: 'co
             }
           }
 
-          const color_value = calculate_color_value(trip_stats, min, max, type) 
+          const color_value = calculate_color_value(trip_stats, min, max, type)
           let color = colorScale(Math.ceil(color_value))
 
           if (geoId == "BK93") {
@@ -96,9 +105,13 @@ const app = new Elysia()
 
     return stream;
   })
-  .get("/map/count", () =>  {
+  .get("/map/:type", ({ params }) => {
     const colorScale = scaleQuantize([1, 10], schemeBlues[9]);
-    
+    return createChoroplethSvg(colorScale, params.type)
+  }, {
+    params: t.Object({
+      type: map_type
+    })
 
   })
   .get("/stream_map", () => {
