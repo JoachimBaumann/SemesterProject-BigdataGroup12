@@ -11,7 +11,7 @@ const topics = {
   taxi_average: 'taxi-average'
 }
 
-interface TripStatistics {
+export interface TripStatistics {
   AVG_DISTANCE: number;
   TOTAL_TRIPS: number;
   AVG_TIP: number;
@@ -38,8 +38,18 @@ class TaxiPuLocation {
 
     const array = [...this.map.values()];
     const min = array.reduce((sum, value) =>
-      sum = Math.min(sum, value.TOTAL_TRIPS) 
-      , Infinity);
+      
+      sum = {
+        TOTAL_TRIPS: Math.min(sum.TOTAL_TRIPS, value.TOTAL_TRIPS),
+        AVG_DISTANCE: Math.min(sum.AVG_DISTANCE, value.AVG_DISTANCE),
+        AVG_TIP: Math.min(sum.AVG_TIP, value.AVG_TIP)
+
+      }
+      , {
+        TOTAL_TRIPS: Infinity,
+        AVG_DISTANCE: Infinity,
+        AVG_TIP: Infinity,
+      } as TripStatistics);
 
     return min;
   }
@@ -48,11 +58,19 @@ class TaxiPuLocation {
 
     const array = [...this.map.values()];
     const max = array.reduce((sum, value) =>
-    sum = Math.max(sum, value.TOTAL_TRIPS) 
-    , 0);
+      sum = {
+        TOTAL_TRIPS: Math.max(sum.TOTAL_TRIPS, value.TOTAL_TRIPS),
+        AVG_DISTANCE: Math.max(sum.AVG_DISTANCE, value.AVG_DISTANCE),
+        AVG_TIP: Math.max(sum.AVG_TIP, value.AVG_TIP)
+
+      }
+      , {
+        TOTAL_TRIPS: 0,
+        AVG_DISTANCE: 0,
+        AVG_TIP: 0,
+      } as TripStatistics);
 
     return max;
-
   }
 }
 
