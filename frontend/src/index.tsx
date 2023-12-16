@@ -23,13 +23,15 @@ function calculate_color_value(value: TripStatistics, min: TripStatistics, max: 
 
   switch (type) {
     case 'count':
-      return (Math.log10(value.TOTAL_TRIPS) - Math.log10(min.TOTAL_TRIPS)) / (Math.log10(max.TOTAL_TRIPS) - Math.log10(max.TOTAL_TRIPS)) * 10;
+      return (Math.log10(value.TOTAL_TRIPS) - Math.log10(min.TOTAL_TRIPS)) / (Math.log10(max.TOTAL_TRIPS) - Math.log10(min.TOTAL_TRIPS)) * 10;
   
     case 'distance':
-      return (Math.log10(value.AVG_DISTANCE) - Math.log10(min.AVG_DISTANCE)) / (Math.log10(max.AVG_DISTANCE) - Math.log10(max.AVG_DISTANCE)) * 10;
+      return (Math.log10(value.AVG_DISTANCE) - Math.log10(min.AVG_DISTANCE)) / (Math.log10(max.AVG_DISTANCE) - Math.log10(min.AVG_DISTANCE)) * 10;
 
     case 'tip':
-      return (Math.log10(value.AVG_TIP) - Math.log10(min.AVG_TIP)) / (Math.log10(max.AVG_TIP) - Math.log10(max.AVG_TIP)) * 10;
+      return (Math.log10(value.AVG_TIP) - Math.log10(min.AVG_TIP)) / (Math.log10(max.AVG_TIP) - Math.log10(min.AVG_TIP)) * 10;
+    default: 
+    return 0;
   }
 
 }
@@ -51,7 +53,7 @@ function createChoroplethSvg(colorScale: ScaleQuantize<string, never>, type: 'co
             }
           }
 
-          const color_value = calculate_color_value(trip_stats, min, max, type)
+          const color_value = calculate_color_value(trip_stats, min, max, type) 
           let color = colorScale(Math.ceil(color_value))
 
           if (geoId == "BK93") {
